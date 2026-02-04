@@ -10,11 +10,17 @@ use std::{
 
 use cxx::{UniquePtr, memory::UniquePtrTarget};
 
-/// A safe wrapper of QWidget to make sure the ownership is properly handled.
+/// A pointer wrapper of QWidget to make sure the ownership is properly transferred.
 ///
 /// The ownership of QWidget will pass to parent if it has one. We want to make sure we doesn't
 /// hold the ownership when it's added to parent, while still keep it when it's top-level widget.
 /// Please make sure to construct the correct variant when adding any QWidget bindings.
+///
+/// # Safety
+///
+/// This type only ensures the ownership transfer properly. The user still need to ensure that
+/// the pointer is valid when using the raw pointer variant since it's nearly impossible to check
+/// when will all ancestor widgets be dropped or its related widgets transferred to other widgets.
 #[derive(Debug)]
 pub enum WidgetPtr<T: UniquePtrTarget> {
     Unique(UniquePtr<T>),

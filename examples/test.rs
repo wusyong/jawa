@@ -10,13 +10,22 @@ fn main() {
     let mut app = QApplication::new();
     let mut window = QMainWindow::new();
 
-    {
-        let widget: Pin<&mut QWidget> = window.pin_mut().upcast_pin();
-        let mut view = QWebEngineView::new_with_parent(widget);
-        view.pin_mut()
-            .load(&QUrl::from("https://html5test.teamdev.com"));
-        window.pin_mut().set_central_widget(&mut view);
-    }
+    let widget: Pin<&mut QWidget> = window.pin_mut().upcast_pin();
+    let mut view = QWebEngineView::new_with_parent(widget);
+
+    window.pin_mut().set_central_widget(&mut view);
+    let mut page = view.page();
+    let connection = page.pin_mut().on_permission_requested(|page, permission| {
+        println!(
+            "Permission requested from origin: {}",
+            permission.origin().to_string()
+        );
+        permission.grant();
+        println!("Permission granted.");
+    });
+    view.pin_mut()
+        // .load(&QUrl::from("https://html5test.teamdev.com"));
+        .load(&QUrl::from("https://www.google.com/maps"));
 
     let mut widget: Pin<&mut QWidget> = window.pin_mut().upcast_pin();
     widget.as_mut().resize(800, 600);

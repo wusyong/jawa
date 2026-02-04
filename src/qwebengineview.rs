@@ -2,7 +2,7 @@ use std::pin::Pin;
 
 pub use ffi::QWebEngineView;
 
-use crate::{QWidget, WidgetPtr};
+use crate::{QWebEnginePage, QWidget, WidgetPtr};
 
 #[cxx_qt::bridge]
 mod ffi {
@@ -14,6 +14,7 @@ mod ffi {
     unsafe extern "C++Qt" {
         include!(<QWebEngineView>);
         type QWidget = crate::QWidget;
+        type QWebEnginePage = crate::QWebEnginePage;
 
         /// Widget used to display and interact with web content.
         ///
@@ -28,6 +29,10 @@ mod ffi {
 
         /// Returns the currently loaded URL.
         fn url(self: &QWebEngineView) -> QUrl;
+
+        /// Returns the associated page object.
+        #[cxx_name = "page"]
+        fn page_raw(self: &QWebEngineView) -> *mut QWebEnginePage;
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -53,5 +58,12 @@ impl QWebEngineView {
     /// Creates a new web engine view widget with a parent.
     pub fn new_with_parent(parent: Pin<&mut QWidget>) -> WidgetPtr<Self> {
         unsafe { ffi::new_web_engine_view_with_parent(parent.get_unchecked_mut()).into() }
+    }
+
+    /// Returns the associated page object.
+    ///
+    /// The returned pointer is non-owning; the view manages its lifetime.
+    pub fn page(&self) -> WidgetPtr<QWebEnginePage> {
+        self.page_raw().into()
     }
 }
