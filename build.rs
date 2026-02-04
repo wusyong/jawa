@@ -43,7 +43,7 @@ fn main() {
     }
 
     // let cpp_files = vec![
-    //     "qwidget",
+    //     "qwebenginepermission",
     // ];
 
     // for cpp_file in &cpp_files {

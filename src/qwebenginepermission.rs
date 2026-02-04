@@ -1,6 +1,7 @@
 use std::mem::MaybeUninit;
 
 use cxx::{ExternType, type_id};
+pub use ffi::{PermissionType, State};
 
 #[cxx_qt::bridge]
 mod ffi {
@@ -27,15 +28,55 @@ mod ffi {
 
         /// Resets the permission decision.
         fn reset(self: &QWebEnginePermission);
+    }
 
-        // TODO: permissionType, state
+    /// Represents the type of permission being requested.
+    #[repr(u8)]
+    #[namespace = "rust::cxxqtlib1"]
+    #[derive(Debug)]
+    enum PermissionType {
+        Unsupported,
+        MediaAudioCapture,
+        MediaVideoCapture,
+        MediaAudioVideoCapture,
+        DesktopVideoCapture,
+        DesktopAudioVideoCapture,
+        MouseLock,
+        Notifications,
+        Geolocation,
+        ClipboardReadWrite,
+        LocalFontsAccess,
+    }
+
+    /// Represents the state of a permission request.
+    #[repr(u8)]
+    #[namespace = "rust::cxxqtlib1"]
+    #[derive(Debug)]
+    enum State {
+        Invalid,
+        Ask,
+        Granted,
+        Denied,
+    }
+
+    #[namespace = "rust::cxxqtlib1"]
+    unsafe extern "C++" {
+        type PermissionType;
+        type State;
+
+        #[cxx_name = "permissionType"]
+        fn permission_type(self: &QWebEnginePermission) -> PermissionType;
+
+        fn state(self: &QWebEnginePermission) -> State;
+
     }
 }
 
-#[derive(Clone)]
+/// Represents a permission request for web content.
+#[derive(Clone, Debug)]
 #[repr(C)]
 pub struct QWebEnginePermission {
-    _cspec: MaybeUninit<usize>, // TODO: check actual size
+    _a: MaybeUninit<usize>,
 }
 
 // Safety:

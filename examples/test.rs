@@ -4,7 +4,7 @@ use cxx_qt::casting::Upcast;
 use cxx_qt_lib::QUrl;
 use cxx_qt_lib_extras::QApplication;
 
-use jawa::{QMainWindow, QWebEngineView, QWidget};
+use jawa::{PermissionType, QMainWindow, QWebEngineView, QWidget};
 
 fn main() {
     let mut app = QApplication::new();
@@ -16,6 +16,11 @@ fn main() {
     window.pin_mut().set_central_widget(&mut view);
     let mut page = view.page();
     let connection = page.pin_mut().on_permission_requested(|page, permission| {
+        if permission.permission_type() != PermissionType::Geolocation {
+            println!("Unsupported permission type requested: {:?}", permission);
+            return;
+        }
+        // TODO: message box
         println!(
             "Permission requested from origin: {}",
             permission.origin().to_string()
