@@ -6,6 +6,10 @@ mod qwebenginepermission;
 mod qwebengineview;
 mod qwidget;
 
+pub use cxx_qt::*;
+pub use cxx_qt_lib::*;
+pub use cxx_qt_lib_extras::*;
+
 pub use ptr::WidgetPtr;
 pub use qmainwindow::QMainWindow;
 pub use qpushbutton::QPushButton;

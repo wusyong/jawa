@@ -27,6 +27,7 @@ fn main() {
 
     let mut builder = CxxQtBuilder::new()
         .qt_module("Widgets")
+        .qt_module("WebEngineCore")
         .qt_module("WebEngineWidgets");
 
     let rust_bridges = vec![

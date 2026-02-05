@@ -12,10 +12,10 @@ mod ffi {
     }
 
     unsafe extern "C++Qt" {
-        include!("jawa/qwebenginepermission.h");
+        include!("qtwidgets/qwebenginepermission.h");
         type QWebEnginePermission = crate::QWebEnginePermission;
 
-        include!(<QWebEngineView>);
+        include!(<QWebEnginePage>);
         /// Represents the contents of a web page without a visual widget.
         #[qobject]
         type QWebEnginePage;

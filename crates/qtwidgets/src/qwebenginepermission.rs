@@ -9,7 +9,7 @@ mod ffi {
         include!("cxx-qt-lib/qurl.h");
         type QUrl = cxx_qt_lib::QUrl;
 
-        include!("jawa/qwebenginepermission.h");
+        include!("qtwidgets/qwebenginepermission.h");
         /// Represents a permission request for web content.
         type QWebEnginePermission = super::QWebEnginePermission;
 

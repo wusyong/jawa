@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QWebEngineView>
+#include <QWebEnginePermission>
 
 #include "rust/cxx.h"
 

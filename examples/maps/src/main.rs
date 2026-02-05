@@ -1,10 +1,10 @@
 use std::pin::Pin;
 
-use cxx_qt::casting::Upcast;
-use cxx_qt_lib::QUrl;
-use cxx_qt_lib_extras::QApplication;
+use qtwidgets::casting::Upcast;
+use qtwidgets::QUrl;
+use qtwidgets::QApplication;
 
-use jawa::{PermissionType, QMainWindow, QWebEngineView, QWidget};
+use qtwidgets::{PermissionType, QMainWindow, QWebEngineView, QWidget};
 
 fn main() {
     let mut app = QApplication::new();
