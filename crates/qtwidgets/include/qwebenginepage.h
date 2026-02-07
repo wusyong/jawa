@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWebEnginePage>
+#include <QWebEngineProfile>
 
 #include "rust/cxx.h"
 #include "cxx-qt-lib/qurl.h"

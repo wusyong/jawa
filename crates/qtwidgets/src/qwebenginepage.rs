@@ -6,6 +6,8 @@ mod ffi {
     unsafe extern "C++Qt" {
         include!("qtwidgets/qwebenginepermission.h");
         type QWebEnginePermission = crate::QWebEnginePermission;
+        include!("qtwidgets/qwebengineprofile.h");
+        type QWebEngineProfile = crate::QWebEngineProfile;
         type QString = cxx_qt_lib::QString;
         type QUrl = cxx_qt_lib::QUrl;
 
@@ -20,6 +22,10 @@ mod ffi {
 
         /// Returns the currently loaded URL.
         fn url(self: &QWebEnginePage) -> QUrl;
+
+        /// Returns the profile associated with this page.
+        #[cxx_name = "profile"]
+        fn profile_raw(self: &QWebEnginePage) -> *mut QWebEngineProfile;
 
         /// Sets the HTML content of the page with an optional base URL.
         #[cxx_name = "setHtml"]
@@ -63,5 +69,9 @@ impl QWebEnginePage {
     /// Creates a new web engine page.
     pub fn new() -> WidgetPtr<Self> {
         ffi::new_web_engine_page().into()
+    }
+
+    pub fn profile(&self) -> WidgetPtr<crate::QWebEngineProfile> {
+        self.profile_raw().into()
     }
 }

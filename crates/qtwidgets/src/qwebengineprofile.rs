@@ -1,3 +1,5 @@
+use std::pin::Pin;
+
 use crate::WidgetPtr;
 
 pub use ffi::{PersistentCookiesPolicy, QWebEngineProfile};
@@ -11,9 +13,11 @@ mod ffi {
 
     unsafe extern "C++Qt" {
         include!("qtwidgets/qwebengineprofile.h");
+        type QWebEngineNotification = crate::QWebEngineNotification;
         /// Configuration and persistent storage for web engine components.
         #[qobject]
         type QWebEngineProfile;
+
 
         /// Returns the storage name for this profile.
         #[cxx_name = "storageName"]
@@ -65,6 +69,13 @@ mod ffi {
         /// Returns true if the profile is off-the-record.
         #[cxx_name = "isOffTheRecord"]
         fn is_off_the_record(self: &QWebEngineProfile) -> bool;
+
+        /// Sets the notification presenter callback.
+        #[cxx_name = "setNotificationPresenter"]
+        fn set_notification_presenter_raw(
+            profile: Pin<&mut QWebEngineProfile>,
+            presenter: fn(&QWebEngineNotification),
+        );
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -94,5 +105,12 @@ impl QWebEngineProfile {
     /// Creates a new web engine profile.
     pub fn new() -> WidgetPtr<Self> {
         ffi::new_web_engine_profile().into()
+    }
+
+    pub fn set_notification_presenter(
+        self: Pin<&mut Self>,
+        presenter: fn(&crate::QWebEngineNotification),
+    ) {
+        ffi::set_notification_presenter_raw(self, presenter);
     }
 }

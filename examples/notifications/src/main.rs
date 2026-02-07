@@ -69,7 +69,7 @@ fn main() {
     let mut page: Pin<&mut QWebEnginePage> = page.pin_mut().upcast_pin();
     view.pin_mut().set_page(page.as_mut());
 
-    page.on_permission_requested(|_page, permission| {
+    page.as_mut().on_permission_requested(|_page, permission| {
         if permission.permission_type() != qtwidgets::PermissionType::Geolocation {
             println!("Unsupported permission type requested: {:?}", permission);
             return;
@@ -77,6 +77,13 @@ fn main() {
         println!("Permission requested: {:?}", permission);
         permission.grant();
     }).release();
+
+    let mut profile = page.profile();
+    let mut profile: Pin<&mut qtwidgets::QWebEngineProfile> = profile.pin_mut();
+    profile.as_mut().set_notification_presenter(|notification| {
+        println!("Notification received: {} - {}", notification.title(), notification.message());
+        notification.show();
+    });
 
 
     view.pin_mut()
