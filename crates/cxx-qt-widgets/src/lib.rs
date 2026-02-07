@@ -1,5 +1,7 @@
 mod ptr;
+mod qboxlayout;
 mod qdesktopservices;
+mod qhboxlayout;
 mod qmainwindow;
 mod qmessagebox;
 mod qpushbutton;
@@ -16,7 +18,9 @@ pub use cxx_qt_lib::*;
 pub use cxx_qt_lib_extras::*;
 
 pub use ptr::WidgetPtr;
+pub use qboxlayout::{Direction, QBoxLayout};
 pub use qdesktopservices::QDesktopServices;
+pub use qhboxlayout::QHBoxLayout;
 pub use qmainwindow::QMainWindow;
 pub use qmessagebox::{QMessageBox, StandardButton, StandardButtons};
 pub use qpushbutton::QPushButton;
@@ -26,4 +30,4 @@ pub use qwebengineprofile::{PersistentCookiesPolicy, QWebEngineProfile};
 pub use qwebenginepermission::{PermissionType, QWebEnginePermission, State};
 pub use qwebengineview::QWebEngineView;
 pub use qwidget::QWidget;
-pub use qt::{WindowFlags, WindowType};
+pub use qt::{WindowFlags, WindowType, AlignmentFlag, Alignment};

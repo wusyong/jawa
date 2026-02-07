@@ -8,12 +8,6 @@ fn main() {
     let mut app = QApplication::new();
     let mut window = QMainWindow::new();
 
-let mut widget = QWidget::new();
-    widget.pin_mut().set_window_flags(WindowFlags::from(WindowType::Window));
-    widget.pin_mut().set_window_title(&"Maps Example".into());
-    widget.pin_mut().show();
-    
-
     let widget: Pin<&mut QWidget> = window.pin_mut().upcast_pin();
     let mut view = QWebEngineView::new_with_parent(widget);
 

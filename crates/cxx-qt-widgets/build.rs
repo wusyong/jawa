@@ -32,7 +32,9 @@ fn main() {
         .qt_module("WebEngineWidgets");
 
     let rust_bridges = vec![
+        "qboxlayout",
         "qdesktopservices",
+        "qhboxlayout",
         "qmainwindow",
         "qmessagebox",
         "qpushbutton",

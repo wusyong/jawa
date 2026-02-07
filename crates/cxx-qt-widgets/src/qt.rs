@@ -4,13 +4,37 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use crate::{QFlags, unsafe_impl_qflag};
-pub use ffi::WindowType;
 
 #[cxx::bridge(namespace = "Qt")]
 mod ffi {
     unsafe extern "C++" {
         include!("<QtWidgets/QWidget>");
     }
+
+    #[derive(Debug)]
+    #[repr(u32)]
+    /// This type is used to signify an object's orientation.
+    enum AlignmentFlag {
+        AlignLeft = 0x0001,
+        // AlignLeading = AlignLeft,
+        AlignRight = 0x0002,
+        // AlignTrailing = AlignRight,
+        AlignHCenter = 0x0004,
+        AlignJustify = 0x0008,
+        AlignAbsolute = 0x0010,
+        AlignHorizontal_Mask = 0x001f,
+        AlignTop = 0x0020,
+        AlignBottom = 0x0040,
+        AlignVCenter = 0x0080,
+        AlignBaseline = 0x0100,
+        // Note that 0x100 will clash with Qt::TextSingleLine = 0x100 due to what the comment above
+        // this enum declaration states. However, since Qt::AlignBaseline is only used by layouts,
+        // it doesn't make sense to pass Qt::AlignBaseline to QPainter::drawText(), so there
+        // shouldn't really be any ambiguity between the two overlapping enum values.
+        AlignVertical_Mask = 0x01e0,
+        AlignCenter = 0x0084
+    }
+
     #[derive(Debug)]
     #[repr(u32)]
     /// This type is used to signify an object's orientation.
@@ -56,7 +80,12 @@ mod ffi {
     }
 }
 
+pub use ffi::{WindowType, AlignmentFlag};
+
 /// [`QFlags`] of [`WindowType`].
 pub type WindowFlags = QFlags<WindowType>;
-
 unsafe_impl_qflag!(WindowType, "Qt::WindowFlags", u32);
+
+/// [`QFlags`] of [`AlignmentFlag`].
+pub type Alignment = QFlags<AlignmentFlag>;
+unsafe_impl_qflag!(AlignmentFlag, "Qt::Alignment", u32);
