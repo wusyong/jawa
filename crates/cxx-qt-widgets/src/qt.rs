@@ -8,7 +8,7 @@ use crate::{QFlags, unsafe_impl_qflag};
 #[cxx::bridge(namespace = "Qt")]
 mod ffi {
     unsafe extern "C++" {
-        include!("<QtWidgets/QWidget>");
+        include!(<QtWidgets/QWidget>);
     }
 
     #[derive(Debug)]
@@ -69,17 +69,23 @@ mod ffi {
         WindowTransparentForInput = 0x00080000,
         WindowOverridesSystemGestures = 0x00100000,
         WindowDoesNotAcceptFocus = 0x00200000,
-        MaximizeUsingFullscreenGeometryHint = 0x00400000,
+        // MaximizeUsingFullscreenGeometryHint = ?,
         CustomizeWindowHint = 0x02000000,
         WindowStaysOnBottomHint = 0x04000000,
         WindowCloseButtonHint = 0x08000000,
-        MacWindowToolBarButtonHint = 0x10000000,
+        // MacWindowToolBarButtonHint = deprecated,
         BypassGraphicsProxyWidget = 0x20000000,
         NoDropShadowWindowHint = 0x40000000,
         WindowFullscreenButtonHint = 0x80000000,
     }
+
+    extern "C++" {
+        type AlignmentFlag;
+        type WindowType;
+    }
 }
 
+use cxx::type_id;
 pub use ffi::{WindowType, AlignmentFlag};
 
 /// [`QFlags`] of [`WindowType`].
