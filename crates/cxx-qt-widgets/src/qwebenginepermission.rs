@@ -6,7 +6,7 @@ pub use ffi::{PermissionType, State};
 #[cxx_qt::bridge]
 mod ffi {
     unsafe extern "C++" {
-        include!("qtwidgets/qwebenginepermission.h");
+        include!("cxx-qt-widgets/qwebenginepermission.h");
         /// Represents a permission request for web content.
         type QWebEnginePermission = super::QWebEnginePermission;
         type QUrl = cxx_qt_lib::QUrl;

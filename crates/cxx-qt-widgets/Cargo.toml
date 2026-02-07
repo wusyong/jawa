@@ -1,10 +1,10 @@
 [package]
-name = "qtwidgets"
+name = "cxx-qt-widgets"
 edition.workspace = true
 license.workspace = true
 version.workspace = true
 
-links = "qtwidgets"
+links = "cxx-qt-widgets"
 
 
 [dependencies]

@@ -1,6 +1,6 @@
 use std::pin::Pin;
 
-use qtwidgets::{
+use cxx_qt_widgets::{
     PermissionType, QApplication, QFlag, QMainWindow, QMessageBox, QUrl, QWebEngineView, QWidget, StandardButton, StandardButtons, casting::Upcast
 };
 

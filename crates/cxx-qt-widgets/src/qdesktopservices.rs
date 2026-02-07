@@ -4,7 +4,7 @@ use cxx_qt::QObject;
 #[cxx_qt::bridge]
 mod ffi {
     unsafe extern "C++" {
-        include!("qtwidgets/qdesktopservices.h");
+        include!("cxx-qt-widgets/qdesktopservices.h");
         type QObject = cxx_qt::QObject;
         type QString = cxx_qt_lib::QString;
         type QUrl = cxx_qt_lib::QUrl;

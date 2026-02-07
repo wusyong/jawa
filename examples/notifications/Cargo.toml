@@ -8,7 +8,7 @@ version.workspace = true
 cxx.workspace = true
 cxx-qt.workspace = true
 cxx-qt-lib.workspace = true
-qtwidgets.workspace = true
+cxx-qt-widgets.workspace = true
 
 [build-dependencies]
 cxx-qt-build.workspace = true

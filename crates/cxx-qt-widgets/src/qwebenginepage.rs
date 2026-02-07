@@ -4,15 +4,15 @@ pub use ffi::{QWebEnginePage, NavigationType};
 #[cxx_qt::bridge]
 mod ffi {
     unsafe extern "C++Qt" {
-        include!("qtwidgets/qwebenginepermission.h");
+        include!("cxx-qt-widgets/qwebenginepermission.h");
         type QWebEnginePermission = crate::QWebEnginePermission;
-        include!("qtwidgets/qwebengineprofile.h");
+        include!("cxx-qt-widgets/qwebengineprofile.h");
         type QWebEngineProfile = crate::QWebEngineProfile;
         type QString = cxx_qt_lib::QString;
         type QUrl = cxx_qt_lib::QUrl;
 
 
-        include!("qtwidgets/qwebenginepage.h");
+        include!("cxx-qt-widgets/qwebenginepage.h");
         /// Represents the contents of a web page without a visual widget.
         #[qobject]
         type QWebEnginePage;

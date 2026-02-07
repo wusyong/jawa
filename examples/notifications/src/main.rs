@@ -1,7 +1,7 @@
 use std::pin::Pin;
 
-use qtwidgets::{
-    QApplication, QDesktopServices, QUrl, QWebEnginePage, QWebEngineView, QWidget, WidgetPtr, casting::Upcast
+use cxx_qt_widgets::{
+    PermissionType, QApplication, QDesktopServices, QUrl, QWebEnginePage, QWebEngineProfile, QWebEngineView, QWidget, WidgetPtr, casting::Upcast
 };
 use cxx_qt_lib::QString;
 
@@ -12,10 +12,10 @@ pub mod qobject {
         include!("cxx-qt-lib/qurl.h");
         type QUrl = cxx_qt_lib::QUrl;
  
-        include!("qtwidgets/qwebenginepage.h");
+        include!("cxx-qt-widgets/qwebenginepage.h");
         /// Base for Qt type
-        type QWebEnginePage = qtwidgets::QWebEnginePage;
-        type NavigationType = qtwidgets::NavigationType;
+        type QWebEnginePage = cxx_qt_widgets::QWebEnginePage;
+        type NavigationType = cxx_qt_widgets::NavigationType;
     }
     
     unsafe extern "RustQt" {
@@ -70,7 +70,7 @@ fn main() {
     view.pin_mut().set_page(page.as_mut());
 
     page.as_mut().on_permission_requested(|_page, permission| {
-        if permission.permission_type() != qtwidgets::PermissionType::Geolocation {
+        if permission.permission_type() != PermissionType::Notifications {
             println!("Unsupported permission type requested: {:?}", permission);
             return;
         }
@@ -79,7 +79,7 @@ fn main() {
     }).release();
 
     let mut profile = page.profile();
-    let mut profile: Pin<&mut qtwidgets::QWebEngineProfile> = profile.pin_mut();
+    let mut profile: Pin<&mut QWebEngineProfile> = profile.pin_mut();
     profile.as_mut().set_notification_presenter(|notification| {
         println!("Notification received: {} - {}", notification.title(), notification.message());
         notification.show();

@@ -12,7 +12,7 @@ mod ffi {
     }
 
     unsafe extern "C++Qt" {
-        include!("qtwidgets/qwebengineprofile.h");
+        include!("cxx-qt-widgets/qwebengineprofile.h");
         type QWebEngineNotification = crate::QWebEngineNotification;
         /// Configuration and persistent storage for web engine components.
         #[qobject]

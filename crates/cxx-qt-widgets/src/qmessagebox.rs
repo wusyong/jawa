@@ -7,7 +7,7 @@ pub use ffi::{QMessageBox, StandardButton};
 #[cxx_qt::bridge]
 mod ffi {
     unsafe extern "C++Qt" {
-        include!("qtwidgets/qmessagebox.h");
+        include!("cxx-qt-widgets/qmessagebox.h");
         type QWidget = crate::QWidget;
         type QString = cxx_qt_lib::QString;
 
