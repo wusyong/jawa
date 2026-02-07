@@ -66,12 +66,21 @@ fn main() {
 
     let mut view = QWebEngineView::new();
     let mut page = qobject::WebEnginePage::new();
-    let page: Pin<&mut QWebEnginePage> = page.pin_mut().upcast_pin();
-    view.pin_mut().set_page(page);
-    view.pin_mut()
-        // .load(&QUrl::from("qrc:/index.html"));
-        .load(&QUrl::from("https://www.rust-lang.org"));
+    let mut page: Pin<&mut QWebEnginePage> = page.pin_mut().upcast_pin();
+    view.pin_mut().set_page(page.as_mut());
 
+    page.on_permission_requested(|_page, permission| {
+        if permission.permission_type() != qtwidgets::PermissionType::Geolocation {
+            println!("Unsupported permission type requested: {:?}", permission);
+            return;
+        }
+        println!("Permission requested: {:?}", permission);
+        permission.grant();
+    }).release();
+
+
+    view.pin_mut()
+        .load(&QUrl::from("qrc:/index.html"));
     let mut widget: Pin<&mut QWidget> = view.pin_mut().upcast_pin();
     widget.as_mut().resize(800, 600);
     widget.as_mut().show();
