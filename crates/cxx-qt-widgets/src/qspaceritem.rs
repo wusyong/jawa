@@ -6,8 +6,7 @@ pub use ffi::QSpacerItem;
 mod ffi {
     unsafe extern "C++" {
         include!(<QtWidgets/QSpacerItem>);
-        include!(<QtWidgets/QSizePolicy>);
-
+        include!("cxx-qt-widgets/qsizepolicy.h");
         type Policy = crate::Policy;
 
         /// A layout spacer item with a size policy.

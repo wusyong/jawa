@@ -3,7 +3,7 @@ use std::{pin::Pin, ptr::null_mut};
 use cxx_qt::impl_transitive_cast;
 use cxx_qt_lib::QString;
 use cxx_qt_widgets::{
-    QBoxLayout, QHBoxLayout, QLabel, QLayout, QMouseEvent, QPushButton, QVBoxLayout, QWidget, RustQWidget, WidgetPtr, WindowFlags, WindowType, casting::Upcast
+    Policy, QBoxLayout, QHBoxLayout, QLabel, QLayout, QMouseEvent, QPushButton, QSpacerItem, QVBoxLayout, QWidget, RustQWidget, WidgetPtr, WindowFlags, WindowType, casting::Upcast
 };
 
 #[cxx_qt::bridge]
@@ -86,6 +86,8 @@ impl NotificationPopup {
         let mut title = QLabel::new();
         title_layout.as_mut().add_widget(&mut title);
 
+        let mut spacer_item = QSpacerItem::new(0, 0, Policy::Expanding, Policy::Minimum);
+        // title_layout.as_mut().add_item(&mut spacer_item);
         // titleLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding));
 
         let mut close = QPushButton::new();
