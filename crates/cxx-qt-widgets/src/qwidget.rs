@@ -49,6 +49,7 @@ mod ffi {
     unsafe extern "C++Qt" {
         /// A base class for Rust types who want to integrate with QWidgets.
         #[qobject]
+        #[base = QWidget]
         type RustQWidget;
     }
 }

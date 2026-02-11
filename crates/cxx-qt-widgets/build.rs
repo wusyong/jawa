@@ -59,14 +59,8 @@ fn main() {
         builder = builder.file(format!("src/{rust_source}.rs"));
     }
 
-    // let cpp_files = vec![
-    //     "qwebenginepermission",
-    // ];
-
-    // for cpp_file in &cpp_files {
-    //     builder = builder.cpp_file(format!("src/{cpp_file}.cpp"));
-    // }
-    // builder = builder.cpp_file("src/qt_types.cpp");
+    builder = builder
+        .cpp_file("include/qwidget.h");
 
     println!("cargo::rerun-if-changed=src/assertion_utils.h");
 
