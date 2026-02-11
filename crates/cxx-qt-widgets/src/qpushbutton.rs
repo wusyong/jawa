@@ -10,8 +10,10 @@ mod ffi {
 
     unsafe extern "C++Qt" {
         include!(<QtWidgets/QPushButton>);
+        type QWidget = crate::QWidget;
 
         #[qobject]
+        #[base = QWidget]
         type QPushButton;
 
         // TODO: we should use upcasting methods here and implement QAbstractButton and QWidget

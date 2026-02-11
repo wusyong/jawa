@@ -35,6 +35,9 @@ mod ffi {
 
         #[cxx_name = "setWindowFlags"]
         fn set_window_flags(self: Pin<&mut QWidget>, flags: WindowFlags);
+
+        #[cxx_name = "adjustSize"]
+        fn adjust_size(self: Pin<&mut QWidget>);
     }
 
     #[namespace = "rust::cxxqtlib1"]
