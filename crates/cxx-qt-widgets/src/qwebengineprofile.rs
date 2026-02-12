@@ -1,6 +1,9 @@
-use std::pin::Pin;
+use std::{
+    pin::Pin,
+    sync::{Mutex, OnceLock},
+};
 
-use crate::{WidgetPtr, QWebEngineNotification};
+use crate::{QWebEngineNotification, WidgetPtr};
 use cxx::UniquePtr;
 
 pub use ffi::{PersistentCookiesPolicy, QWebEngineProfile};
@@ -18,7 +21,6 @@ mod ffi {
         /// Configuration and persistent storage for web engine components.
         #[qobject]
         type QWebEngineProfile;
-
 
         /// Returns the storage name for this profile.
         #[cxx_name = "storageName"]
@@ -108,10 +110,21 @@ impl QWebEngineProfile {
         ffi::new_web_engine_profile().into()
     }
 
-    pub fn set_notification_presenter(
-        self: Pin<&mut Self>,
-        presenter: fn(UniquePtr<QWebEngineNotification>),
-    ) {
-        ffi::set_notification_presenter_raw(self, presenter);
+    pub fn set_notification_presenter<F>(self: Pin<&mut Self>, presenter: F)
+    where
+        F: FnMut(UniquePtr<QWebEngineNotification>) + Send + 'static,
+    {
+        let _ = PRESENTER.set(Mutex::new(Box::new(presenter)));
+        ffi::set_notification_presenter_raw(self, presenter_trampoline);
+    }
+}
+
+static PRESENTER: OnceLock<Mutex<Box<dyn FnMut(UniquePtr<QWebEngineNotification>) + Send>>> =
+    OnceLock::new();
+
+fn presenter_trampoline(notification: UniquePtr<QWebEngineNotification>) {
+    if let Some(lock) = PRESENTER.get() {
+        let mut cb = lock.lock().unwrap();
+        (cb)(notification);
     }
 }

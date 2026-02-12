@@ -91,9 +91,10 @@ fn main() {
 
     let mut profile = page.profile();
     let mut profile: Pin<&mut QWebEngineProfile> = profile.pin_mut();
-    let popup = NotificationPopup::new();
+    let mut popup = NotificationPopup::new();
 
-    profile.as_mut().set_notification_presenter(|notification| {
+    profile.as_mut().set_notification_presenter(move |notification| {
+        popup.test();
         println!(
             "Notification received: {} - {}",
             notification.title(),

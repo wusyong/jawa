@@ -69,6 +69,8 @@ pub struct NotificationPopup {
     // notification: Arc<WidgetPtr<QWebEngineNotification>>,
 }
 
+unsafe impl Send for NotificationPopup {}
+unsafe impl Sync for NotificationPopup {}
 
 impl NotificationPopup {
     pub fn new() -> Self {
@@ -121,6 +123,11 @@ impl NotificationPopup {
             message,
             // notification,
         }
+    }
+
+    pub fn test(&mut self) {
+        self.title.pin_mut().set_text(&QString::from("Test Notification"));
+        self.message.pin_mut().set_text(&QString::from("This is a test notification message."));
     }
 }
 
