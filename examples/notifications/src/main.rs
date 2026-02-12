@@ -5,7 +5,8 @@ use std::pin::Pin;
 use crate::notification_popup::NotificationPopup;
 use cxx_qt_lib::QString;
 use cxx_qt_widgets::{
-    PermissionType, QApplication, QDesktopServices, QUrl, QWebEnginePage, QWebEngineProfile, QWebEngineView, QWidget, WidgetPtr, casting::Upcast
+    PermissionType, QApplication, QDesktopServices, QUrl, QWebEnginePage, QWebEngineProfile,
+    QWebEngineView, QWidget, WidgetPtr, casting::Upcast,
 };
 
 #[cxx_qt::bridge]
@@ -90,23 +91,16 @@ fn main() {
 
     let mut profile = page.profile();
     let mut profile: Pin<&mut QWebEngineProfile> = profile.pin_mut();
-    let mut popup = NotificationPopup::new();
-
-    profile.as_mut().set_notification_presenter(move |notification| {
-        popup.present(notification);
-        // let mut old_lock = old.lock().unwrap();
-        // *old_lock = notification;;
-        // println!(
-        //     "Notification received: {} - {}",
-        //     old_lock.title(),
-        //     old_lock.message()
-        // );
-        // // popup.present(notification.clone());
-        // old_lock.show();
-    });
-
     view.pin_mut().load(&QUrl::from("qrc:/index.html"));
     let mut widget: Pin<&mut QWidget> = view.pin_mut().upcast_pin();
+    let mut popup = NotificationPopup::new(widget.as_mut());
+
+    profile
+        .as_mut()
+        .set_notification_presenter(move |notification| {
+            popup.present(notification);
+        });
+
     widget.as_mut().resize(800, 600);
     widget.as_mut().show();
 

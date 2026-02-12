@@ -5,11 +5,10 @@ use std::{
 
 use cxx::UniquePtr;
 use cxx_qt::{Threading, impl_transitive_cast};
-use cxx_qt_lib::QString;
+use cxx_qt_lib::{QPoint, QString};
 use cxx_qt_widgets::{
     Policy, QBoxLayout, QHBoxLayout, QLabel, QMouseEvent, QPushButton, QSpacerItem, QVBoxLayout,
-    QWebEngineNotification, QWidget, WidgetPtr, WindowType,
-    casting::Upcast,
+    QWebEngineNotification, QWidget, WidgetPtr, WindowType, casting::Upcast,
 };
 
 #[cxx_qt::bridge]
@@ -44,6 +43,10 @@ pub mod ffi {
         #[doc(hidden)]
         #[cxx_name = "make_unique"]
         fn new_popup() -> UniquePtr<NotificationPopup>;
+
+        #[doc(hidden)]
+        #[cxx_name = "new_ptr"]
+        unsafe fn new_popup_with_parent(parent: *mut QWidget) -> *mut NotificationPopup;
     }
 
     impl cxx_qt::Threading for NotificationPopup {}
@@ -59,7 +62,12 @@ impl ffi::NotificationPopup {
         ffi::new_popup().into()
     }
 
+    pub fn new_with_parent(parent: Pin<&mut QWidget>) -> WidgetPtr<Self> {
+        unsafe { ffi::new_popup_with_parent(parent.get_unchecked_mut()).into() }
+    }
+
     pub fn mouse_release_event(self: Pin<&mut Self>, event: *mut QMouseEvent) {
+        // TODO:
         println!("Mouse released on notification popup!");
     }
 }
@@ -76,9 +84,9 @@ unsafe impl Send for NotificationPopup {}
 unsafe impl Sync for NotificationPopup {}
 
 impl NotificationPopup {
-    pub fn new() -> Self {
+    pub fn new(parent: Pin<&mut QWidget>) -> Self {
         // TODO: new_shared
-        let mut this = ffi::NotificationPopup::new();
+        let mut this = ffi::NotificationPopup::new_with_parent(parent);
         let this_clone = this.qt_thread();
         let mut widget: Pin<&mut QWidget> = this.pin_mut().upcast_pin();
         widget.as_mut().set_window_flags(WindowType::ToolTip.into());
@@ -146,21 +154,29 @@ impl NotificationPopup {
         //TODO: icon
 
         let mut widget: Pin<&mut QWidget> = self.this.pin_mut().upcast_pin();
-        widget.show();
+        widget.as_mut().show();
         notification.show();
 
-        notification.pin_mut().on_closed(move |notification| {
-            notification.close();
-            let _ = popup.queue(move |this| {
-                let mut widget: Pin<&mut QWidget> = this.upcast_pin();
-                widget.as_mut().hide();
-
-            });
-        }).release();
-        // QTimer::singleShot(10000, notification.get(), [&] () { onClosed(); });
+        notification
+            .pin_mut()
+            .on_closed(move |notification| {
+                notification.close();
+                let _ = popup.queue(move |this| {
+                    let mut widget: Pin<&mut QWidget> = this.upcast_pin();
+                    widget.as_mut().hide();
+                });
+            })
+            .release();
+        // TODO: QTimer::singleShot(10000, notification.get(), [&] () { onClosed(); });
 
         // position our popup in the right corner of its parent widget
-        // move(parentWidget()->mapToGlobal(parentWidget()->rect().bottomRight() - QPoint(width() + 10, height() + 10)));
+        if let Some(parent) = widget.parent() {
+            let width = widget.width();
+            let height = widget.height();
+            widget.as_mut()._move(&parent.map_to_global(
+                &(parent.rect().bottom_right() - QPoint::new(width + 10, height + 10)),
+            ));
+        }
     }
 }
 

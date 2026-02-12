@@ -15,6 +15,9 @@ mod ffi {
     }
 
     unsafe extern "C++Qt" {
+        type QPoint = cxx_qt_lib::QPoint;
+        type QRect = cxx_qt_lib::QRect;
+
         /// Base class of all user interface objects.
         #[qobject]
         type QWidget;
@@ -41,6 +44,21 @@ mod ffi {
 
         #[cxx_name = "adjustSize"]
         fn adjust_size(self: Pin<&mut QWidget>);
+
+        #[cxx_name = "move"]
+        fn _move(self: Pin<&mut QWidget>, pos: &QPoint);
+
+        #[cxx_name = "parentWidget"]
+        fn parent_widget(self: &QWidget) -> *mut QWidget;
+
+        fn width(self: &QWidget) -> i32;
+
+        fn height(self: &QWidget) -> i32;
+
+        fn rect(self: &QWidget) -> QRect;
+
+        #[cxx_name = "mapToGlobal"]
+        fn map_to_global(self: &QWidget, pos: &QPoint) -> QPoint;
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -64,5 +82,14 @@ impl ffi::QWidget {
     /// Creates a new widget without a parent.
     pub fn new() -> WidgetPtr<Self> {
         ffi::new_widget().into()
+    }
+
+    pub fn parent(&self) -> Option<WidgetPtr<Self>> {
+        let parent = self.parent_widget();
+        if parent.is_null() {
+            None
+        } else {
+            Some(parent.into())
+        }
     }
 }
