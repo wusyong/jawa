@@ -1,5 +1,7 @@
 use std::{
-    pin::Pin,
+    cell::RefCell,
+    ops::DerefMut,
+    pin::{Pin, pin},
     sync::{Arc, Mutex},
 };
 
@@ -24,6 +26,9 @@ pub mod ffi {
         type RustQWidget = cxx_qt_widgets::RustQWidget;
         type QMouseEvent = cxx_qt_widgets::QMouseEvent;
         type QWidget = cxx_qt_widgets::QWidget;
+
+        include!(<QWebEngineNotification>);
+        type QWebEngineNotification = cxx_qt_widgets::QWebEngineNotification;
     }
 
     unsafe extern "RustQt" {
@@ -54,11 +59,26 @@ pub mod ffi {
 
 impl_transitive_cast!(ffi::NotificationPopup, ffi::RustQWidget, ffi::QWidget);
 
-#[derive(Default)]
-pub struct NotificationPopupRust;
+pub struct NotificationPopupRust {
+    title: WidgetPtr<QLabel>,
+    message: WidgetPtr<QLabel>,
+    icon: WidgetPtr<QLabel>,
+    notification: RefCell<UniquePtr<QWebEngineNotification>>,
+}
+
+impl Default for NotificationPopupRust {
+    fn default() -> Self {
+        Self {
+            icon: QLabel::new(),
+            title: QLabel::new(),
+            message: QLabel::new(),
+            notification: RefCell::new(UniquePtr::null()),
+        }
+    }
+}
 
 impl ffi::NotificationPopup {
-    fn new() -> WidgetPtr<Self> {
+    pub fn new() -> WidgetPtr<Self> {
         ffi::new_popup().into()
     }
 
@@ -70,14 +90,20 @@ impl ffi::NotificationPopup {
         // TODO:
         println!("Mouse released on notification popup!");
     }
+
+    fn on_close(self: Pin<&mut ffi::NotificationPopup>) {
+        let notification: WidgetPtr<QWebEngineNotification> =
+            self.notification.borrow().as_mut_ptr().into();
+        let mut widget: Pin<&mut QWidget> = self.upcast_pin();
+        widget.as_mut().hide();
+        if !notification.is_null() {
+            notification.close();
+        }
+    }
 }
 
 pub struct NotificationPopup {
     this: WidgetPtr<ffi::NotificationPopup>,
-    icon: WidgetPtr<QLabel>,
-    title: WidgetPtr<QLabel>,
-    message: WidgetPtr<QLabel>,
-    notification: Arc<Mutex<UniquePtr<QWebEngineNotification>>>,
 }
 
 unsafe impl Send for NotificationPopup {}
@@ -85,8 +111,11 @@ unsafe impl Sync for NotificationPopup {}
 
 impl NotificationPopup {
     pub fn new(parent: Pin<&mut QWidget>) -> Self {
-        // TODO: new_shared
         let mut this = ffi::NotificationPopup::new_with_parent(parent);
+        let mut title = this.title.as_mut_ptr().into();
+        let mut message = this.message.as_mut_ptr().into();
+        let mut icon = this.icon.as_mut_ptr().into();
+
         let this_clone = this.qt_thread();
         let mut widget: Pin<&mut QWidget> = this.pin_mut().upcast_pin();
         widget.as_mut().set_window_flags(WindowType::ToolTip.into());
@@ -94,7 +123,6 @@ impl NotificationPopup {
         let mut root_layout = QHBoxLayout::new_with_parent(widget.as_mut());
         let mut root_layout: Pin<&mut QBoxLayout> = root_layout.pin_mut().upcast_pin();
 
-        let mut icon = QLabel::new();
         root_layout.as_mut().add_widget(&mut icon);
 
         let mut body_layout = QVBoxLayout::new();
@@ -105,7 +133,6 @@ impl NotificationPopup {
         body_layout.as_mut().add_layout(&mut title_layout);
         let mut title_layout: Pin<&mut QBoxLayout> = title_layout.pin_mut().upcast_pin();
 
-        let mut title = QLabel::new();
         title_layout.as_mut().add_widget(&mut title);
 
         let mut spacer_item = QSpacerItem::new(0, 0, Policy::Expanding, Policy::Minimum);
@@ -115,42 +142,39 @@ impl NotificationPopup {
         close.pin_mut().set_text(&QString::from("Close"));
         title_layout.as_mut().add_widget(&mut close);
 
-        let notification = Arc::new(Mutex::new(UniquePtr::null()));
-        let notification_clone = notification.clone();
         close
             .pin_mut()
             .on_clicked(move |_, _| {
-                let notification = notification_clone.clone();
                 let _ = this_clone.queue(move |this| {
-                    on_close(this, &notification.lock().unwrap());
+                    this.on_close();
                 });
             })
             .release();
 
-        let mut message = QLabel::new();
         body_layout.as_mut().add_widget(&mut message);
 
         widget.as_mut().adjust_size();
 
-        Self {
-            this,
-            icon,
-            title,
-            message,
-            notification,
-        }
+        Self { this }
     }
 
     pub fn present(&mut self, new_notification: UniquePtr<QWebEngineNotification>) {
         let popup = self.this.qt_thread();
-        let mut notification = self.notification.lock().unwrap();
-        if !notification.is_null() {
-            on_close(self.this.pin_mut(), &notification);
-        }
-        *notification = new_notification;
+        let mut title: WidgetPtr<QLabel> = self.this.title.as_mut_ptr().into();
+        let mut message: WidgetPtr<QLabel> = self.this.message.as_mut_ptr().into();
 
-        self.title.pin_mut().set_text(&notification.title());
-        self.message.pin_mut().set_text(&notification.message());
+        {
+            if !self.this.notification.borrow().is_null() {
+                self.this.pin_mut().on_close();
+            }
+            let mut notification_ref = self.this.notification.borrow_mut();
+            *notification_ref.deref_mut() = new_notification;
+        }
+
+        let mut notification: WidgetPtr<QWebEngineNotification> =
+            self.this.notification.borrow().as_mut_ptr().into();
+        title.pin_mut().set_text(&notification.title());
+        message.pin_mut().set_text(&notification.message());
         //TODO: icon
 
         let mut widget: Pin<&mut QWidget> = self.this.pin_mut().upcast_pin();
@@ -177,16 +201,5 @@ impl NotificationPopup {
                 &(parent.rect().bottom_right() - QPoint::new(width + 10, height + 10)),
             ));
         }
-    }
-}
-
-fn on_close(
-    this: Pin<&mut ffi::NotificationPopup>,
-    notification: &UniquePtr<QWebEngineNotification>,
-) {
-    let mut widget: Pin<&mut QWidget> = this.upcast_pin();
-    widget.as_mut().hide();
-    if !notification.is_null() {
-        notification.close();
     }
 }
