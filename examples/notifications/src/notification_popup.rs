@@ -1,10 +1,11 @@
-use std::{pin::Pin, ptr::null_mut};
+use std::pin::Pin;
 
-use cxx::SharedPtr;
-use cxx_qt::impl_transitive_cast;
+use cxx_qt::{Threading, impl_transitive_cast};
 use cxx_qt_lib::QString;
 use cxx_qt_widgets::{
-    Policy, QBoxLayout, QHBoxLayout, QLabel, QLayout, QMouseEvent, QPushButton, QSpacerItem, QVBoxLayout, QWebEngineNotification, QWidget, RustQWidget, WidgetPtr, WindowFlags, WindowType, casting::Upcast
+    Policy, QBoxLayout, QHBoxLayout, QLabel, QMouseEvent, QPushButton, QSpacerItem,
+    QVBoxLayout, QWidget, RustQWidget, WidgetPtr, WindowFlags, WindowType,
+    casting::Upcast,
 };
 
 #[cxx_qt::bridge]
@@ -39,10 +40,10 @@ pub mod ffi {
         #[doc(hidden)]
         #[cxx_name = "make_unique"]
         fn new_popup() -> UniquePtr<NotificationPopup>;
-
-        #[cxx_name = "make_shared"]
-        fn new_shared_popup() -> SharedPtr<NotificationPopup>;
     }
+
+    impl cxx_qt::Threading for NotificationPopup {}
+
 }
 
 impl_transitive_cast!(ffi::NotificationPopup, ffi::RustQWidget, ffi::QWidget);
@@ -55,32 +56,25 @@ impl ffi::NotificationPopup {
         ffi::new_popup().into()
     }
 
-    fn new_shared() -> SharedPtr<Self> {
-        ffi::new_shared_popup().into()
-    }
-
     pub fn mouse_release_event(self: Pin<&mut Self>, event: *mut QMouseEvent) {
         println!("Mouse released on notification popup!");
     }
 }
 
 pub struct NotificationPopup {
-    this: SharedPtr<ffi::NotificationPopup>,
+    this: WidgetPtr<ffi::NotificationPopup>,
     icon: WidgetPtr<QLabel>,
     title: WidgetPtr<QLabel>,
     message: WidgetPtr<QLabel>,
     // notification: Arc<WidgetPtr<QWebEngineNotification>>,
 }
 
-unsafe impl Send for ffi::NotificationPopup {}
-unsafe impl Sync for ffi::NotificationPopup {}
 
 impl NotificationPopup {
     pub fn new() -> Self {
         // TODO: new_shared
-        let mut this = ffi::NotificationPopup::new_shared();
-        let mut this_clone = this.clone();
-        let mut widget: Pin<&mut QWidget> = unsafe { this.pin_mut_unchecked().upcast_pin() };
+        let mut this = ffi::NotificationPopup::new();
+        let mut widget: Pin<&mut QWidget> = this.pin_mut().upcast_pin();
         widget.as_mut().set_window_flags(WindowType::ToolTip.into());
 
         let mut root_layout = QHBoxLayout::new_with_parent(widget.as_mut());
@@ -106,10 +100,11 @@ impl NotificationPopup {
         let mut close = QPushButton::new();
         close.pin_mut().set_text(&QString::from("Close"));
         title_layout.as_mut().add_widget(&mut close);
+
         close
             .pin_mut()
             .on_clicked(move |_, _| {
-                on_close(unsafe { this_clone.pin_mut_unchecked() });
+                // on_close(unsafe { this_clone.pin_mut_unchecked() }, notification_clone.as_ref());
             })
             .release();
 

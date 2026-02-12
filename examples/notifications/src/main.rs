@@ -2,11 +2,12 @@ mod notification_popup;
 
 use std::pin::Pin;
 
-use cxx_qt_widgets::{
-    PermissionType, QApplication, QDesktopServices, QUrl, QWebEnginePage, QWebEngineProfile, QWebEngineView, QWidget, WidgetPtr, casting::Upcast
-};
-use cxx_qt_lib::QString;
 use crate::notification_popup::NotificationPopup;
+use cxx_qt_lib::QString;
+use cxx_qt_widgets::{
+    PermissionType, QApplication, QDesktopServices, QUrl, QWebEnginePage, QWebEngineProfile,
+    QWebEngineView, QWidget, WidgetPtr, casting::Upcast,
+};
 
 #[cxx_qt::bridge]
 pub mod qobject {
@@ -14,13 +15,13 @@ pub mod qobject {
     unsafe extern "C++" {
         include!("cxx-qt-lib/qurl.h");
         type QUrl = cxx_qt_lib::QUrl;
- 
+
         include!("cxx-qt-widgets/qwebenginepage.h");
         /// Base for Qt type
         type QWebEnginePage = cxx_qt_widgets::QWebEnginePage;
         type NavigationType = cxx_qt_widgets::NavigationType;
     }
-    
+
     unsafe extern "RustQt" {
         #[qobject]
         #[base = QWebEnginePage]
@@ -28,7 +29,12 @@ pub mod qobject {
 
         #[cxx_override]
         #[cxx_name = "acceptNavigationRequest"]
-        fn accept_navigation_request(self: Pin<&mut Self>, url: &QUrl, _type: NavigationType, is_main_frame: bool) -> bool;
+        fn accept_navigation_request(
+            self: Pin<&mut Self>,
+            url: &QUrl,
+            _type: NavigationType,
+            is_main_frame: bool,
+        ) -> bool;
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -72,27 +78,32 @@ fn main() {
     let mut page: Pin<&mut QWebEnginePage> = page.pin_mut().upcast_pin();
     view.pin_mut().set_page(page.as_mut());
 
-    page.as_mut().on_permission_requested(|_page, permission| {
-        if permission.permission_type() != PermissionType::Notifications {
-            println!("Unsupported permission type requested: {:?}", permission);
-            return;
-        }
-        println!("Permission requested: {:?}", permission);
-        permission.grant();
-    }).release();
+    page.as_mut()
+        .on_permission_requested(|_page, permission| {
+            if permission.permission_type() != PermissionType::Notifications {
+                println!("Unsupported permission type requested: {:?}", permission);
+                return;
+            }
+            println!("Permission requested: {:?}", permission);
+            permission.grant();
+        })
+        .release();
 
     let mut profile = page.profile();
     let mut profile: Pin<&mut QWebEngineProfile> = profile.pin_mut();
+    let popup = NotificationPopup::new();
+
     profile.as_mut().set_notification_presenter(|notification| {
-        println!("Notification received: {} - {}", notification.title(), notification.message());
+        println!(
+            "Notification received: {} - {}",
+            notification.title(),
+            notification.message()
+        );
+        // popup.present(notification.clone());
         notification.show();
     });
 
-    let popup = NotificationPopup::new();
-
-
-    view.pin_mut()
-        .load(&QUrl::from("qrc:/index.html"));
+    view.pin_mut().load(&QUrl::from("qrc:/index.html"));
     let mut widget: Pin<&mut QWidget> = view.pin_mut().upcast_pin();
     widget.as_mut().resize(800, 600);
     widget.as_mut().show();
