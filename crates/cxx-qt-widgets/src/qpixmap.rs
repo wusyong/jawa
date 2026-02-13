@@ -9,7 +9,7 @@ mod ffi {
     #[namespace = "Qt"]
     unsafe extern "C++" {
         type ImageConversionFlags = crate::ImageConversionFlags;
-
+        type TransformationMode = crate::TransformationMode;
     }
 
     unsafe extern "C++" {
@@ -25,6 +25,9 @@ mod ffi {
 
         #[cxx_name = "qpixmapFromImage"]
         fn qpixmap_from_image(image: &QImage, flags: ImageConversionFlags) -> QPixmap;
+
+        #[cxx_name = "scaledToHeight"]
+        fn scaled_to_height(self: &QPixmap, height: i32, mode: TransformationMode) -> QPixmap;
     }
 }
 

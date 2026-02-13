@@ -8,7 +8,6 @@ mod ffi {
 
     #[derive(Debug)]
     #[repr(u32)]
-    /// This type is used to signify an object's orientation.
     enum AlignmentFlag {
         AlignLeft = 0x0001,
         // AlignLeading = AlignLeft,
@@ -32,7 +31,6 @@ mod ffi {
 
     #[derive(Debug)]
     #[repr(u32)]
-    /// This type is used to signify an object's orientation.
     enum WindowType {
         Widget = 0x00000000,
         Window = 0x00000001,
@@ -76,7 +74,6 @@ mod ffi {
 
     #[derive(Debug)]
     #[repr(u32)]
-    /// This type is used to signify an object's orientation.
     enum ImageConversionFlag {
         // ColorMode_Mask          = 0x00000003,
         AutoColor               = 0x00000000,
@@ -101,14 +98,22 @@ mod ffi {
         NoFormatConversion      = 0x00000200
     }
 
+    #[derive(Debug)]
+    #[repr(u32)]
+    enum TransformationMode {
+        FastTransformation,
+        SmoothTransformation,
+    }
+
     extern "C++" {
         type AlignmentFlag;
         type WindowType;
         type ImageConversionFlag;
+        type TransformationMode;
     }
 }
 
-pub use ffi::{WindowType, AlignmentFlag, ImageConversionFlag};
+pub use ffi::{WindowType, AlignmentFlag, ImageConversionFlag, TransformationMode};
 
 /// [`QFlags`] of [`WindowType`].
 pub type WindowFlags = QFlags<WindowType>;
