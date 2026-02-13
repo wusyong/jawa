@@ -97,8 +97,14 @@ impl ffi::QBoxLayout {
     }
 
     /// Creates a new layout with a parent widget.
-    pub fn new_with_parent(direction: Direction, parent: Pin<&mut QWidget>) -> WidgetPtr<Self> {
-        unsafe { ffi::new_box_layout_with_parent(direction, parent.get_unchecked_mut()).into() }
+    pub fn new_with_parent<T: Upcast<QWidget> + UniquePtrTarget>(
+        direction: Direction,
+        parent: Pin<&mut T>,
+    ) -> WidgetPtr<Self> {
+        unsafe {
+            ffi::new_box_layout_with_parent(direction, parent.upcast_pin().get_unchecked_mut())
+                .into()
+        }
     }
 
     /// Adds a widget to the layout, transferring ownership to the layout.
@@ -109,7 +115,7 @@ impl ffi::QBoxLayout {
         widget.release();
         unsafe {
             self.add_widget_raw(
-                (&mut *widget.as_mut_ptr()).upcast_mut(),
+                widget.pin_mut().upcast_pin().get_unchecked_mut(),
                 0,
                 Alignment::new(),
             );
@@ -132,7 +138,7 @@ impl ffi::QBoxLayout {
     ) {
         layout.release();
         unsafe {
-            self.add_layout_raw((&mut *layout.as_mut_ptr()).upcast_mut(), strech);
+            self.add_layout_raw(layout.pin_mut().upcast_pin().get_unchecked_mut(), strech);
         }
     }
 
@@ -143,7 +149,7 @@ impl ffi::QBoxLayout {
     ) {
         item.release();
         unsafe {
-            self.add_item_raw((&mut *item.as_mut_ptr()).upcast_mut());
+            self.add_item_raw(item.pin_mut().upcast_pin().get_unchecked_mut());
         }
     }
 }

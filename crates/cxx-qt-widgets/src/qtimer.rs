@@ -8,6 +8,8 @@ use std::{
 };
 
 use crate::WidgetPtr;
+use cxx::memory::UniquePtrTarget;
+use cxx_qt::casting::Upcast;
 
 use cxx_qt::QObject;
 pub use ffi::QTimer;
@@ -81,18 +83,21 @@ impl ffi::QTimer {
     }
 
     /// Creates a new timer with a parent object.
-    pub fn new_with_parent(parent: Pin<&mut QObject>) -> WidgetPtr<Self> {
-        unsafe { ffi::new_timer_with_parent(parent.get_unchecked_mut()).into() }
+    pub fn new_with_parent<T: Upcast<QObject> + UniquePtrTarget>(
+        parent: Pin<&mut T>,
+    ) -> WidgetPtr<Self> {
+        unsafe { ffi::new_timer_with_parent(parent.upcast_pin().get_unchecked_mut()).into() }
     }
 
-    pub fn single_shot<F>(msec: i32, receiver: &QObject, functor: F)
+    pub fn single_shot<F, T>(msec: i32, receiver: &T, functor: F)
     where
         F: FnOnce() + Send + 'static,
+        T: Upcast<QObject> + UniquePtrTarget,
     {
         let callback_id = NEXT_SINGLE_SHOT_ID.fetch_add(1, Ordering::Relaxed);
         let map = SINGLE_SHOTS.get_or_init(|| Mutex::new(HashMap::new()));
         map.lock().unwrap().insert(callback_id, Box::new(functor));
-        unsafe { ffi::single_shot_raw(msec, receiver, callback_id) };
+        unsafe { ffi::single_shot_raw(msec, receiver.upcast(), callback_id) };
     }
 }
 

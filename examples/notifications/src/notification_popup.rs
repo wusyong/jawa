@@ -189,8 +189,7 @@ impl ffi::NotificationPopup {
                 });
             })
             .release();
-        let nwidget: Pin<&mut QObject> = notification.pin_mut().upcast_pin();
-        QTimer::single_shot(10000, &nwidget.as_ref(), move || {
+        QTimer::single_shot(10000, notification.as_ref().unwrap(), move || {
             let _ = popup.queue(|p| p.on_close());
         });
 

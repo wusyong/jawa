@@ -64,8 +64,10 @@ impl ffi::QLayout {
     }
 
     /// Creates a new layout with a parent widget.
-    pub fn new_with_parent(parent: Pin<&mut QWidget>) -> WidgetPtr<Self> {
-        unsafe { ffi::new_layout_with_parent(parent.get_unchecked_mut()).into() }
+    pub fn new_with_parent<T: Upcast<QWidget> + UniquePtrTarget>(
+        parent: Pin<&mut T>,
+    ) -> WidgetPtr<Self> {
+        unsafe { ffi::new_layout_with_parent(parent.upcast_pin().get_unchecked_mut()).into() }
     }
 
     /// Sets the alignment for a widget in this layout.
@@ -74,6 +76,6 @@ impl ffi::QLayout {
         widget: &mut WidgetPtr<T>,
         alignment: Alignment,
     ) -> bool {
-        unsafe { self.set_alignment_widget((&mut *widget.as_mut_ptr()).upcast_mut(), alignment) }
+        unsafe { self.set_alignment_widget(widget.pin_mut().upcast_pin().get_unchecked_mut(), alignment) }
     }
 }

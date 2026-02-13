@@ -1,6 +1,7 @@
 use std::pin::Pin;
 
 use crate::{QWidget, WidgetPtr};
+use cxx::memory::UniquePtrTarget;
 
 use cxx_qt::{casting::Upcast, impl_transitive_cast};
 pub use ffi::QHBoxLayout;
@@ -54,8 +55,10 @@ impl ffi::QHBoxLayout {
     }
 
     /// Creates a new layout with a parent widget.
-    pub fn new_with_parent(parent: Pin<&mut QWidget>) -> WidgetPtr<Self> {
-        unsafe { ffi::new_hbox_layout_with_parent(parent.get_unchecked_mut()).into() }
+    pub fn new_with_parent<T: Upcast<QWidget> + UniquePtrTarget>(
+        parent: Pin<&mut T>,
+    ) -> WidgetPtr<Self> {
+        unsafe { ffi::new_hbox_layout_with_parent(parent.upcast_pin().get_unchecked_mut()).into() }
     }
 }
 

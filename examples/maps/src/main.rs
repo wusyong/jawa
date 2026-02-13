@@ -9,8 +9,7 @@ fn main() {
     let mut app = QApplication::new();
     let mut window = QMainWindow::new();
 
-    let widget: Pin<&mut QWidget> = window.pin_mut().upcast_pin();
-    let mut view = QWebEngineView::new_with_parent(widget);
+    let mut view = QWebEngineView::new_with_parent(window.pin_mut());
 
     window.pin_mut().set_central_widget(&mut view);
     let mut page = view.page();

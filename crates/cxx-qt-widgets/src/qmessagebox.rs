@@ -1,6 +1,8 @@
 use std::pin::Pin;
 
-use crate::WidgetPtr;
+use crate::{QWidget, WidgetPtr};
+use cxx::memory::UniquePtrTarget;
+use cxx_qt::casting::Upcast;
 use cxx_qt_lib::{QFlags, unsafe_impl_qflag};
 pub use ffi::{QMessageBox, StandardButton};
 
@@ -98,8 +100,10 @@ impl ffi::QMessageBox {
     }
 
     /// Creates a new message box with a parent.
-    pub fn new_with_parent(parent: Pin<&mut crate::QWidget>) -> WidgetPtr<Self> {
-        unsafe { ffi::new_message_box_with_parent(parent.get_unchecked_mut()).into() }
+    pub fn new_with_parent<T: Upcast<QWidget> + UniquePtrTarget>(
+        parent: Pin<&mut T>,
+    ) -> WidgetPtr<Self> {
+        unsafe { ffi::new_message_box_with_parent(parent.upcast_pin().get_unchecked_mut()).into() }
     }
 }
 

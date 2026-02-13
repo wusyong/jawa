@@ -3,6 +3,8 @@ use std::pin::Pin;
 pub use ffi::QWebEngineView;
 
 use crate::{QWebEnginePage, QWidget, WidgetPtr};
+use cxx::memory::UniquePtrTarget;
+use cxx_qt::casting::Upcast;
 
 #[cxx_qt::bridge]
 mod ffi {
@@ -60,8 +62,12 @@ impl QWebEngineView {
     }
 
     /// Creates a new web engine view widget with a parent.
-    pub fn new_with_parent(parent: Pin<&mut QWidget>) -> WidgetPtr<Self> {
-        unsafe { ffi::new_web_engine_view_with_parent(parent.get_unchecked_mut()).into() }
+    pub fn new_with_parent<T: Upcast<QWidget> + UniquePtrTarget>(
+        parent: Pin<&mut T>,
+    ) -> WidgetPtr<Self> {
+        unsafe {
+            ffi::new_web_engine_view_with_parent(parent.upcast_pin().get_unchecked_mut()).into()
+        }
     }
 
     /// Returns the associated page object.
@@ -71,7 +77,7 @@ impl QWebEngineView {
         self.page_raw().into()
     }
 
-    pub fn set_page(self: Pin<&mut QWebEngineView>, page: Pin<&mut QWebEnginePage>) {
-        unsafe { self.set_page_raw(page.get_unchecked_mut()) }
+    pub fn set_page<T: Upcast<QWebEnginePage> + UniquePtrTarget>(self: Pin<&mut QWebEngineView>, page: Pin<&mut T>) {
+        unsafe { self.set_page_raw(page.upcast_pin().get_unchecked_mut()) }
     }
 }

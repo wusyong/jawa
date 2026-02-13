@@ -48,7 +48,7 @@ impl ffi::QMainWindow {
     ) {
         widget.release();
         unsafe {
-            self.set_central_widget_raw((&mut *widget.as_mut_ptr()).upcast_mut());
+            self.set_central_widget_raw(widget.pin_mut().upcast_pin().get_unchecked_mut());
         }
     }
 }
