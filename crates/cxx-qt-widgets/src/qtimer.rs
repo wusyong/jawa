@@ -1,4 +1,7 @@
-use std::pin::Pin;
+use std::{
+    pin::Pin,
+    sync::{Mutex, OnceLock},
+};
 
 use crate::WidgetPtr;
 
@@ -8,7 +11,7 @@ pub use ffi::QTimer;
 #[cxx_qt::bridge]
 mod ffi {
     unsafe extern "C++Qt" {
-        include!(<QtCore/QTimer>);
+        include!("cxx-qt-widgets/qtimer.h");
 
         /// Timer that emits `timeout()` at a specified interval.
         #[qobject]
@@ -42,6 +45,10 @@ mod ffi {
         /// Returns whether the timer is single-shot.
         #[cxx_name = "isSingleShot"]
         fn is_single_shot(self: &QTimer) -> bool;
+
+        #[cxx_name = "singleShot"]
+        unsafe fn single_shot_raw(msec: i32, receiver: *const QObject, functor: fn());
+
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -67,5 +74,22 @@ impl ffi::QTimer {
     /// Creates a new timer with a parent object.
     pub fn new_with_parent(parent: Pin<&mut QObject>) -> WidgetPtr<Self> {
         unsafe { ffi::new_timer_with_parent(parent.get_unchecked_mut()).into() }
+    }
+
+    pub fn single_shot<F>(msec: i32, receiver: &QObject, functor: F)
+    where
+        F: FnMut() + Send + 'static,
+    {
+        let _ = SINGLE_SHOT.set(Mutex::new(Box::new(functor)));
+        unsafe { ffi::single_shot_raw(msec, receiver, single_shot_trampoline) };
+    }
+}
+
+static SINGLE_SHOT: OnceLock<Mutex<Box<dyn FnMut() + Send>>> = OnceLock::new();
+
+fn single_shot_trampoline() {
+    if let Some(lock) = SINGLE_SHOT.get() {
+        let mut cb = lock.lock().unwrap();
+        (cb)();
     }
 }

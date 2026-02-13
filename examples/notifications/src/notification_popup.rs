@@ -1,12 +1,12 @@
 use std::{cell::RefCell, ops::DerefMut, pin::Pin};
 
 use cxx::UniquePtr;
-use cxx_qt::{Threading, impl_transitive_cast};
+use cxx_qt::{QObject, Threading, impl_transitive_cast};
 use cxx_qt_lib::{MouseButton, QPoint, QString};
 use cxx_qt_widgets::{
     Policy, QBoxLayout, QHBoxLayout, QLabel, QMouseEvent, QPixmap, QPushButton, QSpacerItem,
-    QVBoxLayout, QWebEngineNotification, QWidget, TransformationMode, WidgetPtr, WindowType,
-    casting::Upcast,
+    QTimer, QVBoxLayout, QWebEngineNotification, QWidget, TransformationMode, WidgetPtr,
+    WindowType, casting::Upcast,
 };
 pub use ffi::NotificationPopup;
 
@@ -178,17 +178,21 @@ impl ffi::NotificationPopup {
         widget.as_mut().show();
         notification.show();
 
+        let popup_clone = popup.clone();
         notification
             .pin_mut()
             .on_closed(move |notification| {
                 notification.close();
-                let _ = popup.queue(move |this| {
+                let _ = popup_clone.queue(move |this| {
                     let mut widget: Pin<&mut QWidget> = this.upcast_pin();
                     widget.as_mut().hide();
                 });
             })
             .release();
-        // TODO: QTimer::singleShot(10000, notification.get(), [&] () { onClosed(); });
+        let nwidget: Pin<&mut QObject> = notification.pin_mut().upcast_pin();
+        QTimer::single_shot(10000, &nwidget.as_ref(), move || {
+            let _ = popup.queue(|p| p.on_close());
+        });
 
         // position our popup in the right corner of its parent widget
         if let Some(parent) = widget.parent() {
