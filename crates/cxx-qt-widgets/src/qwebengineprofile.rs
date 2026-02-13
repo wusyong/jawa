@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     pin::Pin,
     sync::{Mutex, OnceLock},
 };
@@ -75,10 +76,7 @@ mod ffi {
 
         /// Sets the notification presenter callback.
         #[cxx_name = "setNotificationPresenter"]
-        fn set_notification_presenter_raw(
-            profile: Pin<&mut QWebEngineProfile>,
-            presenter: fn(UniquePtr<QWebEngineNotification>),
-        );
+        fn set_notification_presenter_raw(profile: Pin<&mut QWebEngineProfile>);
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -88,6 +86,14 @@ mod ffi {
         #[doc(hidden)]
         #[cxx_name = "make_unique"]
         fn new_web_engine_profile() -> UniquePtr<QWebEngineProfile>;
+    }
+
+    #[namespace = "rust::cxxqtlib1"]
+    extern "Rust" {
+        unsafe fn notification_presenter_trampoline(
+            profile: *const QWebEngineProfile,
+            notification: UniquePtr<QWebEngineNotification>,
+        );
     }
 
     /// Policy for persistent cookies.
@@ -114,17 +120,26 @@ impl QWebEngineProfile {
     where
         F: FnMut(UniquePtr<QWebEngineNotification>) + Send + 'static,
     {
-        let _ = PRESENTER.set(Mutex::new(Box::new(presenter)));
-        ffi::set_notification_presenter_raw(self, presenter_trampoline);
+        let profile_key = self.as_ref().get_ref() as *const Self as usize;
+        dbg!(profile_key);
+        let map = PRESENTERS.get_or_init(|| Mutex::new(HashMap::new()));
+        map.lock().unwrap().insert(profile_key, Box::new(presenter));
+        ffi::set_notification_presenter_raw(self);
     }
 }
 
-static PRESENTER: OnceLock<Mutex<Box<dyn FnMut(UniquePtr<QWebEngineNotification>) + Send>>> =
-    OnceLock::new();
+static PRESENTERS: OnceLock<
+    Mutex<HashMap<usize, Box<dyn FnMut(UniquePtr<QWebEngineNotification>) + Send>>>,
+> = OnceLock::new();
 
-fn presenter_trampoline(notification: UniquePtr<QWebEngineNotification>) {
-    if let Some(lock) = PRESENTER.get() {
-        let mut cb = lock.lock().unwrap();
-        (cb)(notification);
+fn notification_presenter_trampoline(
+    profile: *const QWebEngineProfile,
+    notification: UniquePtr<QWebEngineNotification>,
+) {
+    if let Some(lock) = PRESENTERS.get() {
+        let mut map = lock.lock().unwrap();
+        if let Some(cb) = map.get_mut(&(profile as usize)) {
+            (cb)(notification);
+        }
     }
 }

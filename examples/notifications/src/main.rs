@@ -107,4 +107,5 @@ fn main() {
     widget.as_mut().show();
 
     app.pin_mut().exec();
+    drop(view);
 }
