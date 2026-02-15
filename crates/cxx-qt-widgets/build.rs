@@ -43,6 +43,7 @@ fn main() {
         "qmainwindow",
         "qmessagebox",
         "qmouseevent",
+        "qpalette",
         "qpixmap",
         "qpushbutton",
         "qsinglepointevent",

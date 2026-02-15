@@ -1,9 +1,8 @@
 use std::pin::Pin;
 
-use cxx_qt_lib::QUrl;
+use cxx_qt_lib::{QColor, QUrl};
 use cxx_qt_widgets::{
-    Policy, QApplication, QBoxLayout, QLineEdit, QPushButton, QSizePolicy, QSpacerItem,
-    QVBoxLayout, QWebEngineView, QWidget, WidgetPtr, casting::Upcast,
+    ColorRole, Policy, QApplication, QBoxLayout, QLineEdit, QPalette, QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout, QWebEngineView, QWidget, WidgetPtr, casting::Upcast
 };
 
 #[cxx_qt::bridge]
@@ -102,8 +101,11 @@ fn main() {
     layout.as_mut().set_contents_margins(0, 0, 0, 0);
     layout.as_mut().set_spacing(0);
 
-    // let mut w = QWidget::new();
-    // let mut p = w.pa
+    let mut w = QWidget::new();
+    let mut p = QPalette::new();
+    p.pin_mut().set_color(w.background_role(), &QColor::from_rgb(0, 0, 0));
+    w.pin_mut().set_palette(&p);
+    // w.pin_mut().set_la
 
     window.pin_mut().resize(1024, 768);
     window.pin_mut().show();

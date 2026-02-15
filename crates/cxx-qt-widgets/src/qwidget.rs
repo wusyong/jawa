@@ -1,5 +1,10 @@
-use crate::WidgetPtr;
+use std::pin::Pin;
+
+use crate::{QLayout, WidgetPtr};
+use cxx::memory::UniquePtrTarget;
 pub use ffi::{QWidget, RustQWidget};
+use cxx_qt::casting::Upcast;
+
 
 #[cxx_qt::bridge]
 mod ffi {
@@ -10,13 +15,16 @@ mod ffi {
 
     #[namespace = "Qt"]
     unsafe extern "C++" {
-        include!("cxx-qt-widgets/qwidget.h");
         type WindowFlags = crate::WindowFlags;
     }
 
     unsafe extern "C++Qt" {
+        include!("cxx-qt-widgets/qwidget.h");
         type QPoint = cxx_qt_lib::QPoint;
         type QRect = cxx_qt_lib::QRect;
+        type QPalette = crate::QPalette;
+        type ColorRole = crate::ColorRole;
+        type QLayout = crate::QLayout;
 
         /// Base class of all user interface objects.
         #[qobject]
@@ -59,6 +67,17 @@ mod ffi {
 
         #[cxx_name = "mapToGlobal"]
         fn map_to_global(self: &QWidget, pos: &QPoint) -> QPoint;
+
+        #[cxx_name = "setPalette"]
+        fn set_palette(self: Pin<&mut QWidget>, palette: &QPalette);
+
+        fn palette(self: &QWidget) -> &QPalette;
+
+        #[cxx_name = "backgroundRole"]
+        fn background_role(self: &QWidget) -> ColorRole;
+
+        #[cxx_name = "setLayout"]
+        unsafe fn set_layout_raw(self: Pin<&mut QWidget>, layout: *mut QLayout);
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -91,5 +110,10 @@ impl ffi::QWidget {
         } else {
             Some(parent.into())
         }
+    }
+
+    pub fn set_layout<T: Upcast<QLayout> + UniquePtrTarget>(self: Pin<&mut Self>, layout: &mut WidgetPtr<T>) {
+        layout.release();
+        unsafe { self.set_layout_raw(layout.pin_mut().upcast_pin().get_unchecked_mut()) }
     }
 }

@@ -77,7 +77,9 @@ impl QWebEngineView {
         self.page_raw().into()
     }
 
-    pub fn set_page<T: Upcast<QWebEnginePage> + UniquePtrTarget>(self: Pin<&mut QWebEngineView>, page: Pin<&mut T>) {
-        unsafe { self.set_page_raw(page.upcast_pin().get_unchecked_mut()) }
+    /// Sets the page object to be used by this view.
+    pub fn set_page<T: Upcast<QWebEnginePage> + UniquePtrTarget>(self: Pin<&mut QWebEngineView>, page: &mut WidgetPtr<T>) {
+        page.release();
+        unsafe { self.set_page_raw(page.pin_mut().upcast_pin().get_unchecked_mut()) }
     }
 }

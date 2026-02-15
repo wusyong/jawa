@@ -76,8 +76,8 @@ fn main() {
 
     let mut view = QWebEngineView::new();
     let mut page = qobject::WebEnginePage::new();
+    view.pin_mut().set_page(&mut page);
     let mut page: Pin<&mut QWebEnginePage> = page.pin_mut().upcast_pin();
-    view.pin_mut().set_page(page.as_mut());
 
     page.as_mut()
         .on_permission_requested(|_page, permission| {

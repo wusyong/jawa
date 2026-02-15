@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QWidget>
+#include "cxx-qt-widgets/qpalette.h"
 
 #include <memory>
 

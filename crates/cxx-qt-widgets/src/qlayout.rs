@@ -1,6 +1,6 @@
 use std::pin::Pin;
 
-use crate::{Alignment, QWidget, WidgetPtr};
+use crate::{QWidget, WidgetPtr};
 use cxx::memory::UniquePtrTarget;
 use cxx_qt::casting::Upcast;
 
@@ -34,14 +34,6 @@ mod ffi {
             right: i32,
             bottom: i32,
         );
-
-        /// Sets the alignment for a widget in this layout.
-        #[cxx_name = "setAlignment"]
-        unsafe fn set_alignment_widget(
-            self: Pin<&mut QLayout>,
-            widget: *mut QWidget,
-            alignment: Alignment,
-        ) -> bool;
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -67,14 +59,5 @@ impl ffi::QLayout {
         parent: Pin<&mut T>,
     ) -> WidgetPtr<Self> {
         unsafe { ffi::new_layout_with_parent(parent.upcast_pin().get_unchecked_mut()).into() }
-    }
-
-    /// Sets the alignment for a widget in this layout.
-    pub fn set_alignment_for_widget<T: Upcast<QWidget> + UniquePtrTarget>(
-        self: Pin<&mut QLayout>,
-        widget: &mut WidgetPtr<T>,
-        alignment: Alignment,
-    ) -> bool {
-        unsafe { self.set_alignment_widget(widget.pin_mut().upcast_pin().get_unchecked_mut(), alignment) }
     }
 }
