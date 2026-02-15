@@ -104,6 +104,19 @@ class MainWindow : public QMainWindow, public Ui_MainWindow
 {
     Q_OBJECT
 public:
+    explicit MainWindow() {
+        setupUi(this);
+    }
+
+    QLineEdit *urlLineEdit() const { return m_urlLineEdit; }
+    QWidget *urlLineEditWidgetRaw() const { return m_urlLineEdit; }
+    QScrollArea *scrollArea() const { return m_scrollArea; }
+    QWidget *scrollAreaWidgetRaw() const { return m_scrollArea; }
+    QPushButton *urlButton() const { return m_urlButton; }
+    QPushButton *deleteAllButton() const { return m_deleteAllButton; }
+    QPushButton *newButton() const { return m_newButton; }
+    QWebEngineView *webview() const { return m_webview; }
+    
     explicit MainWindow(const QUrl &url)
         : QMainWindow()
         , m_store(nullptr)
