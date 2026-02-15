@@ -1,5 +1,9 @@
+use std::pin::Pin;
+
+use cxx_qt_lib::QUrl;
 use cxx_qt_widgets::{
-    QApplication, QPushButton, QWebEngineView, QWidget, WidgetPtr,
+    Policy, QApplication, QBoxLayout, QLineEdit, QPushButton, QSizePolicy, QSpacerItem,
+    QVBoxLayout, QWebEngineView, QWidget, WidgetPtr, casting::Upcast,
 };
 
 #[cxx_qt::bridge]
@@ -10,6 +14,7 @@ pub mod ffi {
         type QWidget = cxx_qt_widgets::QWidget;
         type QPushButton = cxx_qt_widgets::QPushButton;
         type QWebEngineView = cxx_qt_widgets::QWebEngineView;
+        type QLineEdit = cxx_qt_widgets::QLineEdit;
         #[qobject]
         type MainWindow;
 
@@ -20,11 +25,11 @@ pub mod ffi {
         #[cxx_name = "resize"]
         fn resize(self: Pin<&mut MainWindow>, width: i32, height: i32);
 
-        #[cxx_name = "urlLineEditWidgetRaw"]
-        fn url_line_edit_widget_raw(self: &MainWindow) -> *mut QWidget;
+        #[cxx_name = "urlLineEdit"]
+        fn url_line_edit_raw(self: &MainWindow) -> *mut QLineEdit;
 
-        #[cxx_name = "scrollAreaWidgetRaw"]
-        fn scroll_area_widget_raw(self: &MainWindow) -> *mut QWidget;
+        #[cxx_name = "scrollArea"]
+        fn scroll_area_raw(self: &MainWindow) -> *mut QWidget;
 
         #[cxx_name = "urlButton"]
         fn url_button_raw(self: &MainWindow) -> *mut QPushButton;
@@ -54,12 +59,12 @@ impl ffi::MainWindow {
         ffi::new_main_window().into()
     }
 
-    pub fn url_line_edit_widget(&self) -> WidgetPtr<QWidget> {
-        self.url_line_edit_widget_raw().into()
+    pub fn url_line_edit(&self) -> WidgetPtr<QLineEdit> {
+        self.url_line_edit_raw().into()
     }
 
-    pub fn scroll_area_widget(&self) -> WidgetPtr<QWidget> {
-        self.scroll_area_widget_raw().into()
+    pub fn scroll_area(&self) -> WidgetPtr<QWidget> {
+        self.scroll_area_raw().into()
     }
 
     pub fn url_button(&self) -> WidgetPtr<QPushButton> {
@@ -83,6 +88,23 @@ fn main() {
     let mut app = QApplication::new();
 
     let mut window = ffi::MainWindow::new();
+    let url = QUrl::from("https://www.qt.io");
+    window.url_line_edit().pin_mut().set_text(&url.to_qstring());
+
+    let mut vbox_layout = QVBoxLayout::new();
+    let mut layout: Pin<&mut QBoxLayout> = vbox_layout.pin_mut().upcast_pin();
+    layout.as_mut().add_item(&mut QSpacerItem::new(
+        0,
+        0,
+        Policy::Minimum,
+        Policy::Expanding,
+    ));
+    layout.as_mut().set_contents_margins(0, 0, 0, 0);
+    layout.as_mut().set_spacing(0);
+
+    // let mut w = QWidget::new();
+    // let mut p = w.pa
+
     window.pin_mut().resize(1024, 768);
     window.pin_mut().show();
 

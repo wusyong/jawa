@@ -37,6 +37,7 @@ fn main() {
         "qhboxlayout",
         "qimage",
         "qlabel",
+        "qlineedit",
         "qlayout",
         "qlayoutitem",
         "qmainwindow",
