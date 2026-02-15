@@ -1,8 +1,10 @@
 use std::pin::Pin;
 
-use cxx_qt_lib::{QColor, QUrl};
+use cxx_qt_lib::{QColor, QString, QUrl};
 use cxx_qt_widgets::{
-    ColorRole, Policy, QApplication, QBoxLayout, QLineEdit, QPalette, QPushButton, QScrollArea, QSizePolicy, QSpacerItem, QVBoxLayout, QWebEngineView, QWidget, ScrollBarPolicy, WidgetPtr, casting::Upcast
+    ColorRole, Policy, QApplication, QBoxLayout, QLineEdit, QPalette, QPushButton, QScrollArea,
+    QSizePolicy, QSpacerItem, QVBoxLayout, QWebEngineView, QWidget, ScrollBarPolicy, WidgetPtr,
+    casting::Upcast,
 };
 
 #[cxx_qt::bridge]
@@ -54,6 +56,9 @@ pub mod ffi {
     }
 }
 
+unsafe impl Send for ffi::MainWindow {}
+unsafe impl Sync for ffi::MainWindow {}
+
 impl ffi::MainWindow {
     pub fn new() -> WidgetPtr<Self> {
         ffi::new_main_window().into()
@@ -104,14 +109,38 @@ fn main() {
 
     let mut w = QWidget::new();
     let mut p = QPalette::new();
-    p.pin_mut().set_color(w.background_role(), &QColor::from_rgb(0, 0, 0));
+    p.pin_mut()
+        .set_color(w.background_role(), &QColor::from_rgb(0, 0, 0));
     w.pin_mut().set_palette(&p);
     w.pin_mut().set_layout(&mut vbox_layout);
 
     let mut scroll_area = window.scroll_area();
     scroll_area.pin_mut().set_widget(&mut w);
-    scroll_area.pin_mut().set_horizontal_scroll_bar_policy(ScrollBarPolicy::ScrollBarAlwaysOff);
-    scroll_area.pin_mut().set_vertical_scroll_bar_policy(ScrollBarPolicy::ScrollBarAlwaysOn);
+    scroll_area
+        .pin_mut()
+        .set_horizontal_scroll_bar_policy(ScrollBarPolicy::ScrollBarAlwaysOff);
+    scroll_area
+        .pin_mut()
+        .set_vertical_scroll_bar_policy(ScrollBarPolicy::ScrollBarAlwaysOn);
+
+    let win: WidgetPtr<ffi::MainWindow> = window.as_mut_ptr().into();
+    window
+        .url_button()
+        .pin_mut()
+        .on_clicked(move |_, _| {
+            let url =
+                QUrl::from_user_input(&win.url_line_edit().text(), &QString::from(""));
+            win.webview().pin_mut().load(&url);
+        })
+        .release();
+
+    // connect(m_deleteAllButton, &QPushButton::clicked, this, &MainWindow::handleDeleteAllClicked);
+    // connect(m_newButton, &QPushButton::clicked, this, &MainWindow::handleNewClicked);
+
+    // m_store = m_webview->page()->profile()->cookieStore();
+    // connect(m_store, &QWebEngineCookieStore::cookieAdded, this, &MainWindow::handleCookieAdded);
+    // m_store->loadAllCookies();
+    window.webview().pin_mut().load(&url);
 
     window.pin_mut().resize(1024, 768);
     window.pin_mut().show();
