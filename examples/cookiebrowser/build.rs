@@ -32,7 +32,6 @@ fn main() {
         .qrc("data/data.qrc")
         .file("src/main.rs")
         .cpp_file("include/mainwindow.h")
-        .cpp_file("src/mainwindow.cpp")
         .include_prefix("private")
         .crate_include_root(Some("include".to_owned()))
         .build();
