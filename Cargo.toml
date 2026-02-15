@@ -4,6 +4,7 @@ members = [
 	"crates/cxx-qt-widgets",
 
     # Examples
+    "examples/cookiebrowser",
 	"examples/maps",
     "examples/notifications",
     "examples/push-notifications",
