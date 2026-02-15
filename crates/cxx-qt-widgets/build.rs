@@ -55,6 +55,7 @@ fn main() {
         "qt",
         "qtimer",
         "qvboxlayout",
+        "qwebenginecookiestore",
         "qwebenginenotification",
         "qwebenginepage",
         "qwebengineprofile",

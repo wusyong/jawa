@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWebEngineProfile>
+#include <QWebEngineCookieStore>
 #include <QWebEngineNotification>
 #include <utility>
 

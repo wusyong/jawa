@@ -4,7 +4,7 @@ use std::{
     sync::{Mutex, OnceLock},
 };
 
-use crate::{QWebEngineNotification, WidgetPtr};
+use crate::{QWebEngineCookieStore, QWebEngineNotification, WidgetPtr};
 use cxx::UniquePtr;
 
 pub use ffi::{PersistentCookiesPolicy, QWebEngineProfile};
@@ -18,6 +18,8 @@ mod ffi {
 
     unsafe extern "C++Qt" {
         include!("cxx-qt-widgets/qwebengineprofile.h");
+        include!("cxx-qt-widgets/qwebenginecookiestore.h");
+        type QWebEngineCookieStore = crate::QWebEngineCookieStore;
         type QWebEngineNotification = crate::QWebEngineNotification;
         /// Configuration and persistent storage for web engine components.
         #[qobject]
@@ -74,6 +76,10 @@ mod ffi {
         #[cxx_name = "isOffTheRecord"]
         fn is_off_the_record(self: &QWebEngineProfile) -> bool;
 
+        /// Returns the cookie store for this profile.
+        #[cxx_name = "cookieStore"]
+        fn cookie_store_raw(self: Pin<&mut QWebEngineProfile>) -> *mut QWebEngineCookieStore;
+
         /// Sets the notification presenter callback.
         #[cxx_name = "setNotificationPresenter"]
         fn set_notification_presenter_raw(profile: Pin<&mut QWebEngineProfile>);
@@ -128,6 +134,10 @@ impl QWebEngineProfile {
         let map = PRESENTERS.get_or_init(|| Mutex::new(HashMap::new()));
         map.lock().unwrap().insert(profile_key, Box::new(presenter));
         ffi::set_notification_presenter_raw(self);
+    }
+
+    pub fn cookie_store(self: Pin<&mut Self>) -> WidgetPtr<QWebEngineCookieStore> {
+        self.cookie_store_raw().into()
     }
 }
 

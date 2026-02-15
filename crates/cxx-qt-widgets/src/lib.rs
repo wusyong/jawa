@@ -21,6 +21,7 @@ mod qspaceritem;
 mod qt;
 mod qtimer;
 mod qvboxlayout;
+mod qwebenginecookiestore;
 mod qwebenginenotification;
 mod qwebenginepage;
 mod qwebenginepermission;
@@ -58,6 +59,7 @@ pub use qt::{
 };
 pub use qtimer::QTimer;
 pub use qvboxlayout::QVBoxLayout;
+pub use qwebenginecookiestore::QWebEngineCookieStore;
 pub use qwebenginenotification::QWebEngineNotification;
 pub use qwebenginepage::{NavigationType, QWebEnginePage};
 pub use qwebenginepermission::{PermissionType, QWebEnginePermission, State};
