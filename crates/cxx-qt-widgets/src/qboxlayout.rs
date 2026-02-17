@@ -62,6 +62,15 @@ mod ffi {
 
         #[cxx_name = "itemAt"]
         unsafe fn item_at_raw(self: &QBoxLayout, index: i32) -> *mut QLayoutItem;
+
+        #[cxx_name = "insertWidget"]
+        unsafe fn insert_widget_raw(
+            self: Pin<&mut QBoxLayout>,
+            index: i32,
+            widget: *mut QWidget,
+            strech: i32,
+            alignment: Alignment,
+        );
     }
 
     #[repr(i32)]
@@ -159,5 +168,21 @@ impl ffi::QBoxLayout {
 
     pub fn item_at(self: &QBoxLayout, index: i32) -> WidgetPtr<QLayoutItem> {
         unsafe { self.item_at_raw(index).into() }
+    }
+
+    pub fn insert_widget<T: Upcast<QWidget> + UniquePtrTarget>(
+        self: Pin<&mut QBoxLayout>,
+        index: i32,
+        widget: &mut WidgetPtr<T>,
+    ) {
+        widget.release();
+        unsafe {
+            self.insert_widget_raw(
+                index,
+                widget.pin_mut().upcast_pin().get_unchecked_mut(),
+                0,
+                Alignment::new(),
+            );
+        }
     }
 }

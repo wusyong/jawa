@@ -75,8 +75,8 @@ class CookieWidget : public QWidget,  public Ui_CookieWidget
 {
     Q_OBJECT
 public:
-    CookieWidget(const QNetworkCookie &cookie, QWidget *parent = nullptr)
-        : QWidget(parent)
+    CookieWidget(const QNetworkCookie &cookie)
+        : QWidget()
     {
         setupUi(this);
         setAutoFillBackground(true);
@@ -93,7 +93,7 @@ public:
         p.setColor(backgroundRole(), enabled ? p.alternateBase().color() : p.base().color());
         setPalette(p);
     }
-    bool isHighlighted() { return m_isHighlighted; }
+    bool isHighlighted() const { return m_isHighlighted; }
 signals:
     void deleteClicked();
     void viewClicked();

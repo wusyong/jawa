@@ -2,7 +2,9 @@ use std::pin::Pin;
 
 use cxx_qt_lib::{QColor, QString, QUrl};
 use cxx_qt_widgets::{
-    DialogCode, Policy, QApplication, QBoxLayout, QLineEdit, QList_QNetworkCookie, QPalette, QPushButton, QScrollArea, QSpacerItem, QWebEngineView, QWidget, ScrollBarPolicy, WidgetPtr
+    DialogCode, Policy, QApplication, QBoxLayout, QLineEdit, QList_QNetworkCookie, QNetworkCookie,
+    QPalette, QPushButton, QScrollArea, QSpacerItem, QWebEngineView, QWidget, ScrollBarPolicy,
+    WidgetPtr, casting::Downcast,
 };
 
 #[cxx_qt::bridge]
@@ -79,6 +81,27 @@ pub mod ffi {
         #[cxx_name = "make_unique"]
         fn new_cookie_dialog() -> UniquePtr<CookieDialog>;
     }
+
+    unsafe extern "C++Qt" {
+        #[qobject]
+        #[base = QWidget]
+        type CookieWidget;
+
+        #[cxx_name = "setHighlighted"]
+        fn set_highlighted(self: Pin<&mut CookieWidget>, highlighted: bool);
+
+        #[cxx_name = "isHighlighted"]
+        fn is_highlighted(self: &CookieWidget) -> bool;
+    }
+
+    #[namespace = "rust::cxxqtlib1"]
+    unsafe extern "C++Qt" {
+        include!("cxx-qt-lib/common.h");
+
+        #[doc(hidden)]
+        #[cxx_name = "make_unique"]
+        fn new_cookie_widget(cookie: &QNetworkCookie) -> UniquePtr<CookieWidget>;
+    }
 }
 
 unsafe impl Send for ffi::MainWindow {}
@@ -128,6 +151,12 @@ impl ffi::CookieDialog {
     }
 }
 
+impl ffi::CookieWidget {
+    pub fn new(cookie: &QNetworkCookie) -> WidgetPtr<Self> {
+        ffi::new_cookie_widget(cookie).into()
+    }
+}
+
 fn main() {
     let mut app = QApplication::new();
 
@@ -149,7 +178,7 @@ fn main() {
     let mut w = QWidget::new();
     let mut p = QPalette::new();
     p.pin_mut()
-        .set_color(w.background_role(), &QColor::from_rgb(0, 0, 0));
+        .set_color(w.background_role(), &QColor::from_rgb(255, 255, 255));
     w.pin_mut().set_palette(&p);
     w.pin_mut().set_layout(&mut vbox_layout);
 
@@ -179,25 +208,78 @@ fn main() {
         .on_clicked(move |_, _| {
             let mut store = win.webview().page().profile().pin_mut().cookie_store();
             store.pin_mut().delete_all_cookies();
-            let index = win.layout().count() - 1;
-            for i in index..=0 {
-                win.layout().item_at(i).widget().as_mut().map(|w|w.delete());
+            let index = win.layout().count();
+            for i in (0..index).rev() {
+                win.layout()
+                    .item_at(i)
+                    .widget()
+                    .map(|mut w| w.pin_mut().delete());
             }
             win.cookies().pin_mut().clear();
         })
         .release();
 
     let win: WidgetPtr<ffi::MainWindow> = window.as_mut_ptr().into();
-    window.new_button().pin_mut().on_clicked(move |_, _| {
-        let mut dialog = ffi::CookieDialog::new();
-        if dialog.pin_mut().exec() == DialogCode::Accepted.repr as i32 {
-            let cookie = dialog.pin_mut().cookie();
-            win.cookies().pin_mut().append(&cookie);
-        }
-    }).release();
+    window
+        .new_button()
+        .pin_mut()
+        .on_clicked(move |_, _| {
+            let mut dialog = ffi::CookieDialog::new();
+            if dialog.pin_mut().exec() == DialogCode::Accepted.repr as i32 {
+                let cookie = dialog.pin_mut().cookie();
+                win.cookies().pin_mut().append(&cookie);
+            }
+        })
+        .release();
 
-    // connect(m_store, &QWebEngineCookieStore::cookieAdded, this, &MainWindow::handleCookieAdded);
+    let win: WidgetPtr<ffi::MainWindow> = window.as_mut_ptr().into();
     let mut store = window.webview().page().profile().pin_mut().cookie_store();
+    store
+        .pin_mut()
+        .on_cookie_added(move |s, cookie| {
+            let mut layout = win.layout();
+            if win.is_null() || layout.is_null() {
+                return;
+            }
+            let mut cookies = win.cookies();
+            for c in cookies.iter() {
+                if c.has_same_identifier(cookie) {
+                    return;
+                }
+            }
+            cookies.pin_mut().append(cookie);
+
+            let mut widget = ffi::CookieWidget::new(cookie);
+            let mut first = layout.item_at(0).widget();
+            let first_widget: Option<Pin<&mut ffi::CookieWidget>> =
+                first.as_mut().map(|mut w| w.pin_mut().downcast_pin()).flatten();
+            if let Some(mut first_widget) = first_widget {
+                widget
+                    .pin_mut()
+                    .set_highlighted(!first_widget.is_highlighted());
+            } else {
+                widget.pin_mut().set_highlighted(false);
+            }
+            layout.pin_mut().insert_widget(0, &mut widget);
+
+            // connect(widget, &CookieWidget::deleteClicked, [this, cookie, widget]() {
+            //     m_store->deleteCookie(cookie);
+            //     delete widget;
+            //     m_cookies.removeOne(cookie);
+            //     for (int i = 0; i < m_layout->count() - 1; i++) {
+            //         // fix background colors
+            //         auto widget = qobject_cast<CookieWidget*>(m_layout->itemAt(i)->widget());
+            //         widget->setHighlighted(i % 2);
+            //     }
+            // });
+
+            // connect(widget, &CookieWidget::viewClicked, [cookie]() {
+            //     CookieDialog dialog(cookie);
+            //     dialog.exec();
+            // });
+        })
+        .release();
+
     store.pin_mut().load_all_cookies();
     window.webview().pin_mut().load(&url);
 

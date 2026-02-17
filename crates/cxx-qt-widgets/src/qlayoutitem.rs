@@ -19,7 +19,12 @@ mod ffi {
 }
 
 impl ffi::QLayoutItem {
-    pub fn widget(&self) -> WidgetPtr<crate::QWidget> {
-        self.widget_raw().into()
+    pub fn widget(&self) -> Option<WidgetPtr<crate::QWidget>> {
+        let widget = self.widget_raw();
+        if widget.is_null() {
+            None
+        } else {
+            Some(widget.into())
+        }
     }
 }
