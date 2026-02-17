@@ -35,6 +35,9 @@ pub mod ffi {
         fn qlistRemove(_: Pin<&mut QList_QNetworkCookie>, _: isize);
         #[rust_name = "len"]
         fn qlistLen(_: &QList_QNetworkCookie) -> isize;
+
+        #[cxx_name = "removeOne"]
+        fn remove_one(self: Pin<&mut QList_QNetworkCookie>, _: &QNetworkCookie) -> bool;
     }
 
     impl UniquePtr<QList_QNetworkCookie> {}
