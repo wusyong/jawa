@@ -35,6 +35,7 @@ fn main() {
     let rust_bridges = vec![
         "qboxlayout",
         "qdesktopservices",
+        "qdialog",
         "qhboxlayout",
         "qimage",
         "qlabel",

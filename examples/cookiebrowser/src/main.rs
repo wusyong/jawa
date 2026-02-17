@@ -2,9 +2,7 @@ use std::pin::Pin;
 
 use cxx_qt_lib::{QColor, QString, QUrl};
 use cxx_qt_widgets::{
-    Policy, QApplication, QBoxLayout, QLineEdit, QList_QNetworkCookie, QPalette,
-    QPushButton, QScrollArea, QSpacerItem, QWebEngineView, QWidget,
-    ScrollBarPolicy, WidgetPtr,
+    DialogCode, Policy, QApplication, QBoxLayout, QLineEdit, QList_QNetworkCookie, QPalette, QPushButton, QScrollArea, QSpacerItem, QWebEngineView, QWidget, ScrollBarPolicy, WidgetPtr
 };
 
 #[cxx_qt::bridge]
@@ -69,6 +67,8 @@ pub mod ffi {
         type CookieDialog;
 
         fn cookie(self: Pin<&mut CookieDialog>) -> QNetworkCookie;
+
+        fn exec(self: Pin<&mut CookieDialog>) -> i32;
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -119,6 +119,12 @@ impl ffi::MainWindow {
 
     pub fn layout(&self) -> WidgetPtr<QBoxLayout> {
         self.layout_raw().into()
+    }
+}
+
+impl ffi::CookieDialog {
+    pub fn new() -> WidgetPtr<Self> {
+        ffi::new_cookie_dialog().into()
     }
 }
 
@@ -181,10 +187,14 @@ fn main() {
         })
         .release();
 
-    // let win: WidgetPtr<ffi::MainWindow> = window.as_mut_ptr().into();
-    // window.new_button().pin_mut().on_clicked(move |_, _| {
-    // }).release(); TODO!!!!!
-    // connect(m_newButton, &QPushButton::clicked, this, &MainWindow::handleNewClicked);
+    let win: WidgetPtr<ffi::MainWindow> = window.as_mut_ptr().into();
+    window.new_button().pin_mut().on_clicked(move |_, _| {
+        let mut dialog = ffi::CookieDialog::new();
+        if dialog.pin_mut().exec() == DialogCode::Accepted.repr as i32 {
+            let cookie = dialog.pin_mut().cookie();
+            win.cookies().pin_mut().append(&cookie);
+        }
+    }).release();
 
     // connect(m_store, &QWebEngineCookieStore::cookieAdded, this, &MainWindow::handleCookieAdded);
     let mut store = window.webview().page().profile().pin_mut().cookie_store();

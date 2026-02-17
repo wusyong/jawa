@@ -1,6 +1,7 @@
 mod ptr;
 mod qboxlayout;
 mod qdesktopservices;
+mod qdialog;
 mod qhboxlayout;
 mod qimage;
 mod qlabel;
@@ -37,6 +38,7 @@ pub use cxx_qt_lib_extras::*;
 pub use ptr::WidgetPtr;
 pub use qboxlayout::{Direction, QBoxLayout};
 pub use qdesktopservices::QDesktopServices;
+pub use qdialog::{QDialog, DialogCode};
 pub use qhboxlayout::QHBoxLayout;
 pub use qimage::QImage;
 pub use qlabel::QLabel;
