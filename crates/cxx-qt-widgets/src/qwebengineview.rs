@@ -8,6 +8,7 @@ use cxx_qt::casting::Upcast;
 
 #[cxx_qt::bridge]
 mod ffi {
+
     unsafe extern "C++" {
         include!("cxx-qt-lib/qurl.h");
         type QUrl = cxx_qt_lib::QUrl;
@@ -17,6 +18,7 @@ mod ffi {
         include!("cxx-qt-widgets/qwebengineview.h");
         type QWidget = crate::QWidget;
         type QWebEnginePage = crate::QWebEnginePage;
+        type QPrinter = crate::QPrinter;
 
         /// Widget used to display and interact with web content.
         ///
@@ -39,6 +41,17 @@ mod ffi {
         /// Returns the associated page object.
         #[cxx_name = "page"]
         fn page_raw(self: &QWebEngineView) -> *mut QWebEnginePage;
+
+        #[qsignal]
+        #[cxx_name = "printRequested"]
+        fn print_requested(self: Pin<&mut QWebEngineView>);
+
+        #[qsignal]
+        #[cxx_name = "printFinished"]
+        fn print_finished(self: Pin<&mut QWebEngineView>, success: bool);
+
+        /// Renders the current content of the page into a temporary PDF document, then prints it using printer.
+        unsafe fn print(self: Pin<&mut QWebEngineView>, printer: *mut QPrinter);
     }
 
     #[namespace = "rust::cxxqtlib1"]
@@ -54,6 +67,9 @@ mod ffi {
         unsafe fn new_web_engine_view_with_parent(parent: *mut QWidget) -> *mut QWebEngineView;
     }
 }
+
+unsafe impl Send for ffi::QWebEngineView {}
+unsafe impl Sync for ffi::QWebEngineView {}
 
 impl QWebEngineView {
     /// Creates a new web engine view widget.
@@ -78,7 +94,10 @@ impl QWebEngineView {
     }
 
     /// Sets the page object to be used by this view.
-    pub fn set_page<T: Upcast<QWebEnginePage> + UniquePtrTarget>(self: Pin<&mut QWebEngineView>, page: &mut WidgetPtr<T>) {
+    pub fn set_page<T: Upcast<QWebEnginePage> + UniquePtrTarget>(
+        self: Pin<&mut QWebEngineView>,
+        page: &mut WidgetPtr<T>,
+    ) {
         page.release();
         unsafe { self.set_page_raw(page.pin_mut().upcast_pin().get_unchecked_mut()) }
     }

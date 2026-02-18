@@ -28,6 +28,7 @@ fn main() {
     let mut builder = CxxQtBuilder::new()
         .qt_module("Gui")
         .qt_module("Network")
+        .qt_module("PrintSupport")
         .qt_module("Widgets")
         .qt_module("WebEngineCore")
         .qt_module("WebEngineWidgets");
@@ -47,8 +48,12 @@ fn main() {
         "qmessagebox",
         "qmouseevent",
         "qnetworkcookie",
+        "qpainter",
         "qpalette",
+        "qpagedpaintdevice",
         "qpixmap",
+        "qprinter",
+        "qprintpreviewdialog",
         "qpushbutton",
         "qscrollarea",
         "qsinglepointevent",
@@ -73,6 +78,7 @@ fn main() {
     builder = builder
         .cpp_file("include/qlayout.h")
         .cpp_file("include/qlist_QNetworkCookie.h")
+        .cpp_file("include/qpainter.h")
         .cpp_file("include/qtimer.h")
         .cpp_file("include/qwidget.h");
 
